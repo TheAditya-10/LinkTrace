@@ -1,0 +1,138 @@
+export type EntityType =
+  | 'person'
+  | 'phone'
+  | 'vehicle'
+  | 'location'
+  | 'organization'
+  | 'event'
+  | 'account'
+
+export type RelationshipType =
+  | 'call'
+  | 'transaction'
+  | 'meeting'
+  | 'association'
+  | 'ownership'
+  | 'co-occurrence'
+  | 'movement'
+  | 'family'
+  | 'employment'
+
+export type EvidenceSourceType =
+  | 'FIR'
+  | 'CDR'
+  | 'Transaction'
+  | 'Surveillance'
+  | 'Social Media'
+  | 'OCR Scan'
+  | 'Vehicle Registry'
+  | 'Location Log'
+
+export type RiskLevel = 'low' | 'medium' | 'high' | 'critical'
+export type Priority = 'low' | 'medium' | 'high' | 'critical'
+export type CaseStatus = 'active' | 'under_review' | 'closed'
+export type AlertType = 'new_link' | 'risk_change' | 'contradiction' | 'new_evidence'
+
+export interface Entity {
+  id: string
+  caseId: string
+  type: EntityType
+  label: string
+  aliases: string[]
+  riskScore: number // 0-100
+  confidence: number // 0-1
+  attributes: Record<string, string>
+  evidenceIds: string[]
+  firstSeen: string
+  lastSeen: string
+}
+
+export interface Relationship {
+  id: string
+  caseId: string
+  sourceId: string
+  targetId: string
+  type: RelationshipType
+  label: string
+  weight: number // 0-1, drives edge thickness
+  occurrenceCount: number
+  predicted: boolean
+  confidence: number
+  evidenceIds: string[]
+  firstSeen: string
+  lastSeen: string
+  description: string
+}
+
+export interface Evidence {
+  id: string
+  caseId: string
+  sourceType: EvidenceSourceType
+  title: string
+  excerpt: string
+  timestamp: string
+  reliability: 'confirmed' | 'probable' | 'unverified'
+  relatedEntityIds: string[]
+  relatedRelationshipIds: string[]
+  contradictsEvidenceId?: string
+  contradictionNote?: string
+}
+
+export interface TimelineEvent {
+  id: string
+  caseId: string
+  timestamp: string
+  type: RelationshipType | 'alert' | 'evidence_added'
+  title: string
+  description: string
+  entityIds: string[]
+  relationshipId?: string
+}
+
+export interface Lead {
+  id: string
+  caseId: string
+  entityIds: [string, string]
+  relationshipId: string
+  priority: Priority
+  reason: string
+  createdAt: string
+}
+
+export interface Alert {
+  id: string
+  caseId: string
+  type: AlertType
+  priority: Priority
+  title: string
+  description: string
+  timestamp: string
+  read: boolean
+  targetEntityId?: string
+  targetRelationshipId?: string
+}
+
+export interface Case {
+  id: string
+  name: string
+  caseNumber: string
+  status: CaseStatus
+  riskLevel: RiskLevel
+  entityCount: number
+  relationshipCount: number
+  lastUpdated: string
+  openedDate: string
+  summary: string
+  leadInvestigator: string
+  jurisdiction: string
+}
+
+export interface CaseData {
+  case: Case
+  entities: Entity[]
+  relationships: Relationship[]
+  evidence: Evidence[]
+  timeline: TimelineEvent[]
+  leads: Lead[]
+  alerts: Alert[]
+}
