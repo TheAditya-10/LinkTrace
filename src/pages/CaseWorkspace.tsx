@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar } from '@/components/layout/Topbar'
 import { EntityDetailPanel } from '@/components/EntityDetailPanel'
 import { AlertsPanel } from '@/components/AlertsPanel'
+import { AIExtractPanel } from '@/components/AIExtractPanel'
 import { LoadingState } from '@/components/ui/LoadingState'
 
 export default function CaseWorkspace() {
@@ -46,6 +47,7 @@ export default function CaseWorkspace() {
         <>
           <EntityDetailPanel />
           <AlertsPanel />
+          <AIExtractPanel />
         </>
       )}
     </div>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronDown, Search, Bell, ShieldCheck, Waypoints } from 'lucide-react'
+import { ChevronDown, Search, Bell, ShieldCheck, Waypoints, Sparkles } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { Badge } from '@/components/ui/Badge'
 import { entityIcon, entityColorVar } from '@/lib/entityMeta'
@@ -36,6 +36,7 @@ export function Topbar() {
   const alertsOpen = useAppStore((s) => s.alertsOpen)
   const setAlertsOpen = useAppStore((s) => s.setAlertsOpen)
   const readAlertIds = useAppStore((s) => s.readAlertIds)
+  const setAiExtractOpen = useAppStore((s) => s.setAiExtractOpen)
 
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -181,6 +182,14 @@ export function Topbar() {
           </div>
         )}
       </div>
+
+      <button
+        onClick={() => setAiExtractOpen(true)}
+        title="Extract entities from text with AI"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-base-border text-ink-500 transition hover:border-accent/40 hover:text-accent"
+      >
+        <Sparkles className="h-4 w-4" />
+      </button>
 
       <button
         onClick={() => setAlertsOpen(!alertsOpen)}

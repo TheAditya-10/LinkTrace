@@ -136,3 +136,27 @@ export interface CaseData {
   leads: Lead[]
   alerts: Alert[]
 }
+
+/** AI-extraction wire types — shared between the client and the /api/extract-entities function. */
+export interface ExtractedEntity {
+  tempId: string
+  type: EntityType
+  label: string
+  aliases: string[]
+  attributes: { key: string; value: string }[]
+  confidence: number
+}
+
+export interface ExtractedRelationship {
+  sourceTempId: string
+  targetTempId: string
+  type: RelationshipType
+  label: string
+  description: string
+  confidence: number
+}
+
+export interface ExtractionResult {
+  entities: ExtractedEntity[]
+  relationships: ExtractedRelationship[]
+}
