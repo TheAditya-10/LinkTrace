@@ -1,6 +1,7 @@
 import { NavLink, useNavigate, useParams } from 'react-router-dom'
 import { Waypoints, Target, GitBranch, Clock, FileSearch, LayoutGrid, ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { CaseBriefCard } from '@/components/CaseBrief'
 
 const navItems = [
   { to: 'network', label: 'Network Map', icon: Waypoints },
@@ -15,7 +16,8 @@ export function Sidebar() {
   const navigate = useNavigate()
 
   return (
-    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-base-border bg-base-surface">
+    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-base-border bg-base-surface">
+      <CaseBriefCard />
       <div className="flex-1 overflow-y-auto px-4 pt-5">
         <p className="eyebrow mb-2 px-2">Forensic Views</p>
         <nav className="space-y-1">

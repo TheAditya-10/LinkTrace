@@ -30,6 +30,7 @@ export function mergeExtractionIntoCase(
   result: ExtractionResult,
   rawText: string,
   sourceType: EvidenceSourceType,
+  evidenceTitle?: string,
 ): { data: CaseData; summary: MergeSummary } {
   const nowIso = new Date().toISOString()
   // Deep-ish clone: caseData.entities are shared fixture objects (module-level
@@ -60,6 +61,7 @@ export function mergeExtractionIntoCase(
       evidenceIds: [],
       firstSeen: nowIso,
       lastSeen: nowIso,
+      ...(e.role ? { role: e.role } : {}),
     })
     entitiesAdded += 1
   }
@@ -98,8 +100,12 @@ export function mergeExtractionIntoCase(
       id: evidenceId,
       caseId: caseData.case.id,
       sourceType,
-      title: `AI-extracted from pasted ${sourceType} text`,
-      excerpt: rawText.length > 320 ? `${rawText.slice(0, 320)}…` : rawText,
+      title: evidenceTitle ?? `AI-extracted from pasted ${sourceType} text`,
+      excerpt: rawText
+        ? rawText.length > 320
+          ? `${rawText.slice(0, 320)}…`
+          : rawText
+        : '(Extracted from an uploaded document — no plain text excerpt available.)',
       timestamp: nowIso,
       reliability: 'probable',
       relatedEntityIds: touchedEntityIds,

@@ -33,6 +33,9 @@ export type Priority = 'low' | 'medium' | 'high' | 'critical'
 export type CaseStatus = 'active' | 'under_review' | 'closed'
 export type AlertType = 'new_link' | 'risk_change' | 'contradiction' | 'new_evidence'
 
+/** An entity's role in the case narrative. Unset means "not yet determined". */
+export type EntityRole = 'accused' | 'victim' | 'witness' | 'suspect'
+
 export interface Entity {
   id: string
   caseId: string
@@ -45,6 +48,7 @@ export interface Entity {
   evidenceIds: string[]
   firstSeen: string
   lastSeen: string
+  role?: EntityRole
 }
 
 export interface Relationship {
@@ -125,6 +129,10 @@ export interface Case {
   summary: string
   leadInvestigator: string
   jurisdiction: string
+  /** Fuller narrative of what happened — the crime itself. */
+  crimeSummary: string
+  /** Where the investigation currently stands. */
+  investigationStatus: string
 }
 
 export interface CaseData {
@@ -145,6 +153,7 @@ export interface ExtractedEntity {
   aliases: string[]
   attributes: { key: string; value: string }[]
   confidence: number
+  role?: EntityRole
 }
 
 export interface ExtractedRelationship {
@@ -159,4 +168,6 @@ export interface ExtractedRelationship {
 export interface ExtractionResult {
   entities: ExtractedEntity[]
   relationships: ExtractedRelationship[]
+  /** One or two sentences summarizing the incident, when the source reads like an FIR. */
+  caseSummary: string
 }

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Clock, FolderOpen, TriangleAlert, ChevronRight, ShieldCheck, LogOut, LayoutGrid } from 'lucide-react'
+import { Search, Clock, FolderOpen, TriangleAlert, ChevronRight, ShieldCheck, LogOut, LayoutGrid, Plus } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { SkeletonBlock } from '@/components/ui/LoadingState'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Badge } from '@/components/ui/Badge'
+import { NewCaseModal } from '@/components/NewCaseModal'
 import { riskColor } from '@/lib/entityMeta'
 import { formatDate } from '@/lib/utils'
 import { allCaseData } from '@/data'
@@ -30,14 +31,18 @@ export default function CaseSelectorPage() {
   const casesLoading = useAppStore((s) => s.casesLoading)
   const loadCases = useAppStore((s) => s.loadCases)
   const loadCase = useAppStore((s) => s.loadCase)
+  const createdCases = useAppStore((s) => s.createdCases)
 
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<CaseStatus | 'all'>('all')
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null)
+  const [newCaseOpen, setNewCaseOpen] = useState(false)
 
   useEffect(() => {
     loadCases()
   }, [loadCases])
+
+  const allCaseDataWithCreated = useMemo(() => [...allCaseData, ...createdCases], [createdCases])
 
   const filtered = useMemo(() => {
     return cases.filter((c) => {
@@ -47,11 +52,11 @@ export default function CaseSelectorPage() {
     })
   }, [cases, statusFilter, query])
 
-  const totalEntities = allCaseData.reduce((sum, c) => sum + c.entities.length, 0)
-  const openLeads = allCaseData
+  const totalEntities = allCaseDataWithCreated.reduce((sum, c) => sum + c.entities.length, 0)
+  const openLeads = allCaseDataWithCreated
     .flatMap((c) => c.leads)
     .filter((l) => l.priority === 'high' || l.priority === 'critical').length
-  const activeCases = allCaseData.filter((c) => c.case.status === 'active').length
+  const activeCases = allCaseDataWithCreated.filter((c) => c.case.status === 'active').length
 
   async function handleSelect(caseId: string) {
     setNavigatingTo(caseId)
@@ -136,6 +141,12 @@ export default function CaseSelectorPage() {
               <option value="under_review">Under Review</option>
               <option value="closed">Closed</option>
             </select>
+            <button
+              onClick={() => setNewCaseOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-accent-dim"
+            >
+              <Plus className="h-3.5 w-3.5" /> New Case
+            </button>
           </div>
         </div>
 
@@ -153,7 +164,7 @@ export default function CaseSelectorPage() {
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((c) => {
-              const data = allCaseData.find((d) => d.case.id === c.id)!
+              const data = allCaseDataWithCreated.find((d) => d.case.id === c.id)!
               return (
                 <button
                   key={c.id}
@@ -189,6 +200,17 @@ export default function CaseSelectorPage() {
           </div>
         )}
       </main>
+
+      <NewCaseModal
+        open={newCaseOpen}
+        onClose={() => setNewCaseOpen(false)}
+        onCreated={async (caseId) => {
+          setNewCaseOpen(false)
+          setNavigatingTo(caseId)
+          await loadCase(caseId)
+          navigate(`/case/${caseId}/network`)
+        }}
+      />
     </div>
   )
 }

@@ -17,6 +17,10 @@ export const operationBlackout: CaseData = {
       'Narcotics distribution and money-laundering network operating out of Bhiwandi, feeding retail dealers across western Mumbai through a logistics front company.',
     leadInvestigator: 'Insp. Priya Kulkarni',
     jurisdiction: 'Mumbai Crime Branch, Unit IX',
+    crimeSummary:
+      'A narcotics distribution and money-laundering operation running out of a Bhiwandi warehouse, fronted by a logistics company, distributing contraband to retail dealers across western Mumbai and layering proceeds through a personal bank account.',
+    investigationStatus:
+      "Active. A raid on the Bhiwandi warehouse on 30 Aug 2026 seized 14kg of contraband and led to one detention. Financial analysis has since surfaced an undisclosed beneficial-ownership link between the prime suspect and the logistics front company; that lead and the suspect's outer network are under active pursuit.",
   },
   entities: [
     {
@@ -24,12 +28,14 @@ export const operationBlackout: CaseData = {
       riskScore: 88, confidence: 0.95,
       attributes: { Age: '46', 'Known Address': 'Andheri West, Mumbai', Occupation: 'Import-export consultant (unverified)' },
       evidenceIds: ['blk-ev1', 'blk-ev4', 'blk-ev9'], firstSeen: '2026-02-10', lastSeen: '2026-09-01',
+      role: 'accused',
     },
     {
       id: 'blk-e2', caseId, type: 'person', label: 'Sunita Verma', aliases: ['Sunny'],
       riskScore: 62, confidence: 0.88,
       attributes: { Age: '31', 'Known Address': 'Kandivali East, Mumbai', Occupation: 'Courier / logistics coordinator' },
       evidenceIds: ['blk-ev2', 'blk-ev5'], firstSeen: '2026-02-14', lastSeen: '2026-08-28',
+      role: 'suspect',
     },
     {
       id: 'blk-e3', caseId, type: 'person', label: 'Arjun Nair', aliases: [],
@@ -42,6 +48,7 @@ export const operationBlackout: CaseData = {
       riskScore: 71, confidence: 0.9,
       attributes: { Age: '38', 'Known Address': 'Bhiwandi, Thane', Occupation: 'Warehouse supervisor' },
       evidenceIds: ['blk-ev3', 'blk-ev7'], firstSeen: '2026-02-18', lastSeen: '2026-09-04',
+      role: 'suspect',
     },
     {
       id: 'blk-e5', caseId, type: 'phone', label: '+91 98211-4XXXX', aliases: ['Malhotra burner #1'],

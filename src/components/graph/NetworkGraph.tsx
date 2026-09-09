@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { GraphLink, GraphNode } from './useForceLayout'
-import { entityIcon, entityColorVar } from '@/lib/entityMeta'
+import { entityIcon, entityColorVar, roleColor } from '@/lib/entityMeta'
 
 interface Transform {
   x: number
@@ -61,6 +61,12 @@ export function NetworkGraph({
     fitToScreen()
   }, [fitToScreen, fitNonce])
 
+  // Render accused/suspect nodes last so their emphasis ring always sits on top.
+  const orderedNodes = useMemo(() => {
+    const weight = (n: GraphNode) => (n.role === 'accused' ? 2 : n.role === 'suspect' ? 1 : 0)
+    return [...nodes].sort((a, b) => weight(a) - weight(b))
+  }, [nodes])
+
   const focusSet = useMemo(() => {
     if (!focusedEntityId) return null
     const neighborIds = new Set<string>([focusedEntityId])
@@ -92,10 +98,11 @@ export function NetworkGraph({
     ;(e.target as Element).setPointerCapture(e.pointerId)
   }
   function handlePointerMove(e: React.PointerEvent) {
-    if (!dragState.current) return
-    const dx = e.clientX - dragState.current.startX
-    const dy = e.clientY - dragState.current.startY
-    setTransform((t) => ({ ...t, x: dragState.current!.origX + dx, y: dragState.current!.origY + dy }))
+    const drag = dragState.current
+    if (!drag) return
+    const dx = e.clientX - drag.startX
+    const dy = e.clientY - drag.startY
+    setTransform((t) => ({ ...t, x: drag.origX + dx, y: drag.origY + dy }))
   }
   function handlePointerUp() {
     dragState.current = null
@@ -167,11 +174,12 @@ export function NetworkGraph({
             </g>
           )
         })}
-        {nodes.map((n) => {
+        {orderedNodes.map((n) => {
           const Icon = entityIcon[n.type]
           const color = entityColorVar[n.type]
           const dimmed = focusSet ? !focusSet.has(n.id) : false
           const isSelected = n.id === selectedEntityId
+          const emphasisColor = n.role ? roleColor[n.role] : null
           return (
             <g
               key={n.id}
@@ -184,16 +192,36 @@ export function NetworkGraph({
                 onNodeClick(n.id)
               }}
             >
+              {emphasisColor && (
+                <circle r={n.radius + 9} fill="none" stroke={emphasisColor} strokeWidth={2.5} strokeDasharray="4 3">
+                  <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 0 0"
+                    to="360 0 0"
+                    dur="14s"
+                    repeatCount="indefinite"
+                  />
+                </circle>
+              )}
               {isSelected && <circle r={n.radius + 6} fill="none" stroke="#06b6d4" strokeWidth={2} />}
               <circle r={n.radius} fill={color} fillOpacity={0.16} stroke={color} strokeWidth={2} />
               <foreignObject x={-9} y={-9} width={18} height={18} className="pointer-events-none">
                 <Icon width={18} height={18} color={color} strokeWidth={2.2} />
               </foreignObject>
+              {n.role === 'accused' && (
+                <g transform={`translate(${n.radius * 0.7} ${-n.radius * 0.7})`} className="pointer-events-none">
+                  <circle r={7} fill={roleColor.accused} stroke="#fff" strokeWidth={1.5} />
+                  <text textAnchor="middle" y={3} style={{ font: '700 9px Inter, sans-serif', fill: '#fff' }}>
+                    !
+                  </text>
+                </g>
+              )}
               <g transform={`translate(0 ${n.radius + 8})`}>
                 <text
                   textAnchor="middle"
                   className="pointer-events-none select-none"
-                  style={{ font: '600 11px Inter, sans-serif', fill: '#0B1220' }}
+                  style={{ font: '600 11px Inter, sans-serif', fill: emphasisColor ?? '#0B1220' }}
                   y={11}
                   stroke="#FFFFFF"
                   strokeWidth={3}

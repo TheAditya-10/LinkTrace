@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { X, ArrowUpRight } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
-import { entityIcon, entityColorVar, entityLabel, riskLevelFromScore, riskColor } from '@/lib/entityMeta'
+import { entityIcon, entityColorVar, entityLabel, riskLevelFromScore, riskColor, roleColor, roleLabel } from '@/lib/entityMeta'
 import { formatDate } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
 import type { Entity } from '@/types'
@@ -57,7 +57,17 @@ export function EntityDetailPanel() {
               <Icon className="h-5 w-5" />
             </span>
             <div>
-              <p className="eyebrow mb-0.5">{entityLabel[entity.type]}</p>
+              <div className="mb-0.5 flex items-center gap-1.5">
+                <p className="eyebrow">{entityLabel[entity.type]}</p>
+                {entity.role && (
+                  <span
+                    className="rounded-full px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wide text-white"
+                    style={{ backgroundColor: roleColor[entity.role] }}
+                  >
+                    {roleLabel[entity.role]}
+                  </span>
+                )}
+              </div>
               <h2 className="font-sans text-lg font-bold leading-tight text-ink-900">{entity.label}</h2>
               {entity.aliases.length > 0 && (
                 <p className="text-xs text-ink-400">aka {entity.aliases.join(', ')}</p>

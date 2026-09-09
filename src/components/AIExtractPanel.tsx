@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Sparkles, X, Loader2, TriangleAlert, ArrowRight, Check } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { extractFromText } from '@/lib/extractApi'
-import { entityIcon, entityColorVar, entityLabel } from '@/lib/entityMeta'
+import { ExtractionReview } from '@/components/ExtractionReview'
 import type { EvidenceSourceType, ExtractionResult } from '@/types'
 
 const sourceTypes: EvidenceSourceType[] = [
@@ -71,7 +71,11 @@ export function AIExtractPanel() {
       (r, i) =>
         !excludedRelationships.has(i) && includedTempIds.has(r.sourceTempId) && includedTempIds.has(r.targetTempId),
     )
-    const summary = mergeExtraction({ entities: filteredEntities, relationships: filteredRelationships }, text, sourceType)
+    const summary = mergeExtraction(
+      { entities: filteredEntities, relationships: filteredRelationships, caseSummary: result.caseSummary },
+      text,
+      sourceType,
+    )
     setMergedSummary(
       `Added ${summary.entitiesAdded} new ${summary.entitiesAdded === 1 ? 'entity' : 'entities'}` +
         (summary.entitiesLinked > 0 ? ` (linked ${summary.entitiesLinked} to existing entities)` : '') +
@@ -165,103 +169,27 @@ export function AIExtractPanel() {
               </button>
             </div>
           ) : (
-            <div className="space-y-5">
-              <p className="text-xs text-ink-500">
-                Review before adding — uncheck anything that looks wrong. Entities matching an existing label/alias
-                will be linked to that entity instead of duplicated.
-              </p>
-
-              <section>
-                <p className="eyebrow mb-2">Entities ({result.entities.length})</p>
-                <div className="space-y-1.5">
-                  {result.entities.map((e) => {
-                    const Icon = entityIcon[e.type]
-                    const excluded = excludedEntities.has(e.tempId)
-                    return (
-                      <label
-                        key={e.tempId}
-                        className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 transition ${
-                          excluded ? 'border-base-border bg-base-muted opacity-50' : 'border-base-border bg-base-surface'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={!excluded}
-                          onChange={() =>
-                            setExcludedEntities((prev) => {
-                              const next = new Set(prev)
-                              if (next.has(e.tempId)) next.delete(e.tempId)
-                              else next.add(e.tempId)
-                              return next
-                            })
-                          }
-                          className="accent-accent"
-                        />
-                        <span
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-                          style={{ backgroundColor: `${entityColorVar[e.type]}1a`, color: entityColorVar[e.type] }}
-                        >
-                          <Icon className="h-3.5 w-3.5" />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-xs font-medium text-ink-900">{e.label}</span>
-                          <span className="block text-[11px] text-ink-400">
-                            {entityLabel[e.type]}
-                            {e.aliases.length > 0 && ` · aka ${e.aliases.join(', ')}`}
-                          </span>
-                        </span>
-                        <span className="mono-tag shrink-0">{Math.round(e.confidence * 100)}%</span>
-                      </label>
-                    )
-                  })}
-                </div>
-              </section>
-
-              <section>
-                <p className="eyebrow mb-2">Relationships ({result.relationships.length})</p>
-                <div className="space-y-1.5">
-                  {result.relationships.length === 0 && (
-                    <p className="text-xs text-ink-400">No relationships extracted between the entities above.</p>
-                  )}
-                  {result.relationships.map((r, i) => {
-                    const s = result.entities.find((e) => e.tempId === r.sourceTempId)
-                    const t = result.entities.find((e) => e.tempId === r.targetTempId)
-                    const excluded = excludedRelationships.has(i)
-                    return (
-                      <label
-                        key={i}
-                        className={`flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2 transition ${
-                          excluded ? 'border-base-border bg-base-muted opacity-50' : 'border-base-border bg-base-surface'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={!excluded}
-                          onChange={() =>
-                            setExcludedRelationships((prev) => {
-                              const next = new Set(prev)
-                              if (next.has(i)) next.delete(i)
-                              else next.add(i)
-                              return next
-                            })
-                          }
-                          className="mt-0.5 accent-accent"
-                        />
-                        <span className="min-w-0 flex-1">
-                          <span className="flex flex-wrap items-center gap-1 text-xs font-medium text-ink-900">
-                            {s?.label ?? '?'} <ArrowRight className="h-3 w-3 text-ink-300" /> {t?.label ?? '?'}
-                          </span>
-                          <span className="block text-[11px] text-ink-400">
-                            {r.type} · {r.description || r.label}
-                          </span>
-                        </span>
-                        <span className="mono-tag shrink-0">{Math.round(r.confidence * 100)}%</span>
-                      </label>
-                    )
-                  })}
-                </div>
-              </section>
-            </div>
+            <ExtractionReview
+              result={result}
+              excludedEntities={excludedEntities}
+              excludedRelationships={excludedRelationships}
+              onToggleEntity={(tempId) =>
+                setExcludedEntities((prev) => {
+                  const next = new Set(prev)
+                  if (next.has(tempId)) next.delete(tempId)
+                  else next.add(tempId)
+                  return next
+                })
+              }
+              onToggleRelationship={(i) =>
+                setExcludedRelationships((prev) => {
+                  const next = new Set(prev)
+                  if (next.has(i)) next.delete(i)
+                  else next.add(i)
+                  return next
+                })
+              }
+            />
           )}
         </div>
 

@@ -17,11 +17,15 @@ export const harborRoad: CaseData = {
       'Fatal altercation outside a Harbor Road warehouse; an initial alibi contradiction was resolved through CCTV recovery, leading to conviction.',
     leadInvestigator: 'Insp. Meera Iyer',
     jurisdiction: 'Chennai City Police, Harbour Division',
+    crimeSummary:
+      'Selvam Muthu was fatally injured in an altercation on Warehouse Lane, Harbor Road, on the night of 4 October 2025.',
+    investigationStatus:
+      "Closed. Karthik Raman was chargesheeted on 10 Jan 2026 after cell-tower data and recovered CCTV footage placed him at the scene during the time of death, contradicting an alibi initially provided by an associate — who later retracted the statement. Case handed over for trial.",
   },
   entities: [
-    { id: 'hbr-e1', caseId, type: 'person', label: 'Selvam Muthu', aliases: [], riskScore: 25, confidence: 1, attributes: { Age: '44', Role: 'Victim' }, evidenceIds: ['hbr-ev1'], firstSeen: '2025-10-04', lastSeen: '2025-10-04' },
-    { id: 'hbr-e2', caseId, type: 'person', label: 'Karthik Raman', aliases: ['Katti'], riskScore: 82, confidence: 0.93, attributes: { Age: '29', Role: 'Accused', 'Known Address': 'Royapuram, Chennai' }, evidenceIds: ['hbr-ev2', 'hbr-ev4', 'hbr-ev6'], firstSeen: '2025-10-04', lastSeen: '2026-01-10' },
-    { id: 'hbr-e3', caseId, type: 'person', label: 'Bala Subramaniam', aliases: [], riskScore: 55, confidence: 0.85, attributes: { Age: '31', Role: 'Witness / associate of accused' }, evidenceIds: ['hbr-ev3', 'hbr-ev5'], firstSeen: '2025-10-04', lastSeen: '2025-12-02' },
+    { id: 'hbr-e1', caseId, type: 'person', label: 'Selvam Muthu', aliases: [], riskScore: 25, confidence: 1, attributes: { Age: '44', Role: 'Victim' }, evidenceIds: ['hbr-ev1'], firstSeen: '2025-10-04', lastSeen: '2025-10-04', role: 'victim' },
+    { id: 'hbr-e2', caseId, type: 'person', label: 'Karthik Raman', aliases: ['Katti'], riskScore: 82, confidence: 0.93, attributes: { Age: '29', Role: 'Accused', 'Known Address': 'Royapuram, Chennai' }, evidenceIds: ['hbr-ev2', 'hbr-ev4', 'hbr-ev6'], firstSeen: '2025-10-04', lastSeen: '2026-01-10', role: 'accused' },
+    { id: 'hbr-e3', caseId, type: 'person', label: 'Bala Subramaniam', aliases: [], riskScore: 55, confidence: 0.85, attributes: { Age: '31', Role: 'Witness / associate of accused' }, evidenceIds: ['hbr-ev3', 'hbr-ev5'], firstSeen: '2025-10-04', lastSeen: '2025-12-02', role: 'witness' },
     { id: 'hbr-e4', caseId, type: 'location', label: 'Warehouse Lane, Harbor Road', aliases: ['Crime scene'], riskScore: 0, confidence: 1, attributes: { Type: 'Industrial lane' }, evidenceIds: ['hbr-ev1'], firstSeen: '2025-10-04', lastSeen: '2025-10-04' },
     { id: 'hbr-e5', caseId, type: 'phone', label: '+91 93450-6XXXX', aliases: ["Raman's phone"], riskScore: 60, confidence: 0.88, attributes: { Carrier: 'BSNL prepaid' }, evidenceIds: ['hbr-ev2'], firstSeen: '2025-10-04', lastSeen: '2026-01-10' },
     { id: 'hbr-e6', caseId, type: 'vehicle', label: 'TN-01-CV-8823', aliases: ['Black Pulsar motorcycle'], riskScore: 50, confidence: 0.8, attributes: { 'Registered Owner': 'Karthik Raman' }, evidenceIds: ['hbr-ev4'], firstSeen: '2025-10-04', lastSeen: '2025-10-04' },

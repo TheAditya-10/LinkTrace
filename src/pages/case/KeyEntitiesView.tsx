@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { GitBranch, Award, ArrowUpRight } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { computeEntityMetrics, describeBridgeGroups } from '@/lib/analytics'
-import { entityIcon, entityColorVar, riskLevelFromScore, riskColor } from '@/lib/entityMeta'
+import { entityIcon, entityColorVar, riskLevelFromScore, riskColor, roleColor, roleLabel } from '@/lib/entityMeta'
 import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 
@@ -85,6 +85,7 @@ export default function KeyEntitiesView() {
                 <div className="flex items-center gap-1.5">
                   <Badge color={riskColor[risk]}>{risk}</Badge>
                   {m.isBridge && <Badge color="#8b5cf6">bridge</Badge>}
+                  {e.role && <Badge color={roleColor[e.role]} variant="solid">{roleLabel[e.role]}</Badge>}
                 </div>
                 <div className="mt-1 flex items-center justify-between border-t border-base-border pt-2 text-[11px] text-ink-500">
                   <span>{m.degree} connections</span>

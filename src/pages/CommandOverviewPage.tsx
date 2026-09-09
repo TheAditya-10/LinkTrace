@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Layers, Database, Share2, TriangleAlert, Bell, ChevronRight } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
@@ -15,8 +16,11 @@ export default function CommandOverviewPage() {
   const navigate = useNavigate()
   const investigatorName = useAppStore((s) => s.investigatorName)
   const loadCase = useAppStore((s) => s.loadCase)
+  const createdCases = useAppStore((s) => s.createdCases)
 
-  const rows = allCaseData.map((d) => {
+  const allCaseDataWithCreated = useMemo(() => [...allCaseData, ...createdCases], [createdCases])
+
+  const rows = allCaseDataWithCreated.map((d) => {
     const conflicts = d.evidence.filter((e) => e.contradictsEvidenceId).length
     const openAlerts = d.alerts.filter((a) => !a.read).length
     const critAlerts = d.alerts.filter((a) => a.priority === 'critical').length

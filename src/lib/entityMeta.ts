@@ -8,7 +8,7 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
-import type { EntityType, Priority, RiskLevel, EvidenceSourceType } from '@/types'
+import type { EntityType, Priority, RiskLevel, EvidenceSourceType, EntityRole } from '@/types'
 
 export const entityIcon: Record<EntityType, LucideIcon> = {
   person: User,
@@ -59,6 +59,20 @@ export function riskLevelFromScore(score: number): RiskLevel {
   if (score >= 60) return 'high'
   if (score >= 35) return 'medium'
   return 'low'
+}
+
+export const roleColor: Record<EntityRole, string> = {
+  accused: '#ef4444',
+  suspect: '#f97316',
+  victim: '#64748b',
+  witness: '#0ea5e9',
+}
+
+export const roleLabel: Record<EntityRole, string> = {
+  accused: 'Accused',
+  suspect: 'Suspect',
+  victim: 'Victim',
+  witness: 'Witness',
 }
 
 export const evidenceSourceLabel: Record<EvidenceSourceType, string> = {
