@@ -1,6 +1,7 @@
 import { create } from 'zustand'
-import type { Case, CaseData } from '@/types'
+import type { Case, CaseData, EvidenceSourceType, ExtractionResult } from '@/types'
 import { fetchCaseData, fetchCases } from '@/lib/api'
+import { mergeExtractionIntoCase, type MergeSummary } from '@/lib/mergeExtraction'
 
 interface NetworkFilters {
   entityTypes: Set<string>
@@ -74,6 +75,10 @@ interface AppState {
   setAlertsOpen: (open: boolean) => void
   markAlertRead: (alertId: string) => void
   readAlertIds: Set<string>
+
+  aiExtractOpen: boolean
+  setAiExtractOpen: (open: boolean) => void
+  mergeExtraction: (result: ExtractionResult, rawText: string, sourceType: EvidenceSourceType) => MergeSummary
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -128,4 +133,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   readAlertIds: new Set(),
   markAlertRead: (alertId) =>
     set((s) => ({ readAlertIds: new Set(s.readAlertIds).add(alertId) })),
+
+  aiExtractOpen: false,
+  setAiExtractOpen: (open) => set({ aiExtractOpen: open }),
+  mergeExtraction: (result, rawText, sourceType) => {
+    const current = get().activeCaseData
+    if (!current) return { entitiesAdded: 0, entitiesLinked: 0, relationshipsAdded: 0 }
+    const { data, summary } = mergeExtractionIntoCase(current, result, rawText, sourceType)
+    set({ activeCaseData: data })
+    return summary
+  },
 }))
