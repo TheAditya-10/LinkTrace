@@ -156,6 +156,7 @@ export function NetworkGraph({
   fitNonce,
 }: NetworkGraphProps) {
   const graphRef = useRef<ForceGraphMethods<GraphNode, GraphLink>>()
+  const shouldFitRef = useRef(true)
   const [iconCacheVersion, setIconCacheVersion] = useState(0)
 
   const graphData = useMemo<GraphData<GraphNode, GraphLink>>(() => {
@@ -237,8 +238,8 @@ export function NetworkGraph({
   }, [])
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(fitToScreen)
-    return () => window.cancelAnimationFrame(frame)
+    shouldFitRef.current = true
+    graphRef.current?.d3ReheatSimulation()
   }, [fitNonce, fitToScreen, graphData])
 
   const drawLink = useCallback<NonNullable<ForceGraphProps<GraphNode, GraphLink>['linkCanvasObject']>>(
@@ -372,6 +373,11 @@ export function NetworkGraph({
         showPointerCursor={(object) => object !== undefined}
         onNodeClick={(node) => onNodeClick(node.id)}
         onLinkClick={(link, event) => onLinkClick(link.id, { x: event.clientX, y: event.clientY })}
+        onEngineStop={() => {
+          if (!shouldFitRef.current) return
+          shouldFitRef.current = false
+          fitToScreen()
+        }}
       />
     </div>
   )
