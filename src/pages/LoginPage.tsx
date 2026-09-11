@@ -71,9 +71,9 @@ export default function LoginPage() {
   const revealTransition = { duration: 0.42, ease: [0.32, 0.72, 0, 1] as const }
 
   return (
-    <main className="min-h-screen bg-base-bg p-3 sm:p-5 lg:p-6">
-      <div className="relative isolate mx-auto grid min-h-[calc(100vh-1.5rem)] max-w-[1440px] overflow-hidden rounded-2xl border border-base-border bg-base-surface shadow-panel sm:min-h-[calc(100vh-2.5rem)] lg:grid-cols-[minmax(0,0.93fr)_minmax(31rem,0.87fr)]">
-        <section className="relative overflow-hidden bg-base-navy px-6 py-6 text-ink-inverse sm:px-10 sm:py-9 lg:flex lg:min-h-[720px] lg:flex-col lg:px-12 lg:py-10" aria-labelledby="access-context-heading">
+    <main className="min-h-screen bg-base-bg p-3 sm:p-5 lg:h-screen lg:min-h-0 lg:overflow-hidden lg:p-6">
+      <div className="relative isolate mx-auto grid min-h-[calc(100vh-1.5rem)] max-w-[1440px] overflow-hidden rounded-2xl border border-base-border bg-base-surface shadow-panel sm:min-h-[calc(100vh-2.5rem)] lg:h-[calc(100vh-3rem)] lg:min-h-0 lg:grid-cols-[minmax(0,0.93fr)_minmax(31rem,0.87fr)]">
+        <section className="relative overflow-hidden bg-base-navy px-6 py-6 text-ink-inverse sm:px-10 sm:py-9 lg:flex lg:min-h-0 lg:flex-col lg:px-12 lg:py-8" aria-labelledby="access-context-heading">
           <div
             className="pointer-events-none absolute inset-0 opacity-40"
             style={{
@@ -96,7 +96,7 @@ export default function LoginPage() {
             </span>
           </div>
 
-          <motion.div initial={revealInitial} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={revealTransition} className="relative mt-12 max-w-md lg:mt-20">
+          <motion.div initial={revealInitial} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={revealTransition} className="relative mt-12 max-w-md lg:mt-14">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-accent-soft/25 bg-accent/10 text-accent-soft shadow-glow">
               <ShieldCheck className="h-5 w-5" />
             </div>
@@ -150,20 +150,20 @@ export default function LoginPage() {
           </motion.figure>
         </section>
 
-        <section className="relative flex items-center px-6 py-10 sm:px-10 lg:px-14 lg:py-12" aria-labelledby="sign-in-heading">
+        <section className="relative flex items-center px-6 py-10 sm:px-10 lg:px-14 lg:py-7" aria-labelledby="sign-in-heading">
           <div className="mx-auto w-full max-w-md">
             <motion.div initial={revealInitial} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={{ ...revealTransition, delay: prefersReducedMotion ? 0 : 0.08 }}>
-              <div className="flex items-start justify-between gap-4 border-b border-base-border pb-5">
+              <div className="flex items-start justify-between gap-4 border-b border-base-border pb-5 lg:pb-4">
                 <div>
                   <p className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-accent-dim">Access record / 01</p>
                   <h2 id="sign-in-heading" className="mt-3 text-3xl font-semibold tracking-tight text-ink-900">Sign in to LinkTrace</h2>
                 </div>
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-bg text-accent-dim"><LockKeyhole className="h-4 w-4" /></span>
               </div>
-              <p className="mt-5 text-sm leading-6 text-ink-500">Choose a sample access profile to enter its credentials, then authenticate to the workspace.</p>
+              <p className="mt-5 text-sm leading-6 text-ink-500 lg:mt-4">Choose a sample access profile to enter its credentials, then authenticate to the workspace.</p>
             </motion.div>
 
-            <form onSubmit={handleSubmit} className="mt-8">
+            <form onSubmit={handleSubmit} className="mt-8 lg:mt-6">
               <fieldset disabled={isAuthenticating}>
                 <legend className="font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500">Select access profile</legend>
                 <div className="mt-3 divide-y divide-base-border border-y border-base-border">
@@ -177,7 +177,7 @@ export default function LoginPage() {
                         type="button"
                         onClick={() => fillCredentials(profile)}
                         aria-pressed={isSelected}
-                        className="group flex w-full items-center gap-4 px-1 py-4 text-left transition duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-base-muted/80 focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
+                        className="group flex w-full items-center gap-4 px-1 py-4 text-left transition duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-base-muted/80 focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70 lg:py-3"
                       >
                         <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] ${isSelected ? 'bg-accent text-base-navy' : 'bg-base-muted text-accent-dim group-hover:bg-accent-bg'}`}>
                           <Icon className="h-4 w-4" />
@@ -192,7 +192,7 @@ export default function LoginPage() {
                   })}
                 </div>
 
-                <div className="mt-7 grid gap-5">
+                <div className="mt-7 grid gap-5 lg:mt-5 lg:gap-4">
                   <div>
                     <label htmlFor="investigatorId" className="flex items-center justify-between gap-4 text-xs font-medium text-ink-700">
                       Investigator ID
@@ -237,13 +237,13 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isAuthenticating}
-                className="group mt-7 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-base-navy px-4 py-3 text-sm font-semibold text-white shadow-card transition duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:bg-base-navy-soft active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-base-surface disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 disabled:active:scale-100"
+                className="group mt-7 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-base-navy px-4 py-3 text-sm font-semibold text-white shadow-card transition duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:bg-base-navy-soft active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-base-surface disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 disabled:active:scale-100 lg:mt-5"
               >
                 {isAuthenticating ? <><Loader2 className="motion-loading h-4 w-4 animate-spin" /> Authenticating…</> : <><Fingerprint className="h-4 w-4 transition duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:rotate-[-8deg]" /> Authenticate access</>}
               </button>
             </form>
 
-            <div className="mt-7 grid grid-cols-3 gap-3 border-t border-base-border pt-5 text-center">
+            <div className="mt-7 grid grid-cols-3 gap-3 border-t border-base-border pt-5 text-center lg:mt-5 lg:pt-4">
               <span className="font-mono text-[10px] uppercase tracking-wide text-ink-400">Role-based</span>
               <span className="font-mono text-[10px] uppercase tracking-wide text-ink-400">Audit logged</span>
               <span className="font-mono text-[10px] uppercase tracking-wide text-ink-400">Sample data</span>
