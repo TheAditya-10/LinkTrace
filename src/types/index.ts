@@ -32,6 +32,7 @@ export type RiskLevel = 'low' | 'medium' | 'high' | 'critical'
 export type Priority = 'low' | 'medium' | 'high' | 'critical'
 export type CaseStatus = 'active' | 'under_review' | 'closed'
 export type AlertType = 'new_link' | 'risk_change' | 'contradiction' | 'new_evidence'
+export type UserRole = 'analyst' | 'supervisor'
 
 export interface Entity {
   id: string

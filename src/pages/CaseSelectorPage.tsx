@@ -25,6 +25,7 @@ const statusColor: Record<CaseStatus, string> = {
 export default function CaseSelectorPage() {
   const navigate = useNavigate()
   const investigatorName = useAppStore((s) => s.investigatorName)
+  const investigatorRole = useAppStore((s) => s.investigatorRole)
   const logout = useAppStore((s) => s.logout)
   const cases = useAppStore((s) => s.cases)
   const casesLoading = useAppStore((s) => s.casesLoading)
@@ -72,12 +73,14 @@ export default function CaseSelectorPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/command-overview')}
-              className="flex items-center gap-1.5 rounded-lg border border-base-border px-2.5 py-1.5 text-xs font-medium text-ink-500 transition hover:border-accent/40 hover:text-accent"
-            >
-              <LayoutGrid className="h-3.5 w-3.5" /> Command Overview
-            </button>
+            {investigatorRole === 'supervisor' && (
+              <button
+                onClick={() => navigate('/command-overview')}
+                className="flex items-center gap-1.5 rounded-lg border border-base-border px-2.5 py-1.5 text-xs font-medium text-ink-500 transition hover:border-accent/40 hover:text-accent"
+              >
+                <LayoutGrid className="h-3.5 w-3.5" /> Command Overview
+              </button>
+            )}
             <span className="hidden text-xs text-ink-500 sm:inline">
               Signed in as <span className="font-medium text-ink-700">{investigatorName}</span>
             </span>

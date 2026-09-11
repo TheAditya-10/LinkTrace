@@ -1,6 +1,7 @@
 import { NavLink, useNavigate, useParams } from 'react-router-dom'
 import { Waypoints, Target, GitBranch, Clock, FileSearch, LayoutGrid, ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAppStore } from '@/store/useAppStore'
 
 const navItems = [
   { to: 'network', label: 'Network Map', icon: Waypoints },
@@ -13,6 +14,7 @@ const navItems = [
 export function Sidebar() {
   const { caseId } = useParams()
   const navigate = useNavigate()
+  const investigatorRole = useAppStore((s) => s.investigatorRole)
 
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col border-r border-base-border bg-base-surface">
@@ -39,12 +41,14 @@ export function Sidebar() {
         </nav>
       </div>
       <div className="border-t border-base-border px-4 py-4">
-        <button
-          onClick={() => navigate('/command-overview')}
-          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-500 transition hover:bg-base-muted hover:text-ink-900"
-        >
-          <LayoutGrid className="h-4 w-4" /> Command Overview
-        </button>
+        {investigatorRole === 'supervisor' && (
+          <button
+            onClick={() => navigate('/command-overview')}
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-500 transition hover:bg-base-muted hover:text-ink-900"
+          >
+            <LayoutGrid className="h-4 w-4" /> Command Overview
+          </button>
+        )}
         <button
           onClick={() => navigate('/cases')}
           className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-500 transition hover:bg-base-muted hover:text-ink-900"

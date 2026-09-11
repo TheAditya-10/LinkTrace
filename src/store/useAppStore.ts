@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Case, CaseData, CaseSummary, EvidenceSourceType, ExtractionResult } from '@/types'
+import type { Case, CaseData, CaseSummary, EvidenceSourceType, ExtractionResult, UserRole } from '@/types'
 import { fetchCaseData, fetchCases, createCase as apiCreateCase, type CreateCaseInput } from '@/lib/api'
 import type { MergeSummary } from '@/lib/mergeExtraction'
 import { generateCaseSummary as fetchCaseSummary } from '@/lib/caseSummaryApi'
@@ -46,8 +46,9 @@ interface FocusRequest {
 
 interface AppState {
   investigatorName: string | null
+  investigatorRole: UserRole | null
   isAuthenticating: boolean
-  login: (name: string) => Promise<void>
+  login: (name: string, role: UserRole) => Promise<void>
   logout: () => void
 
   cases: Case[]
@@ -93,13 +94,14 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set, get) => ({
   investigatorName: null,
+  investigatorRole: null,
   isAuthenticating: false,
-  login: async (name: string) => {
+  login: async (name, role) => {
     set({ isAuthenticating: true })
     await new Promise((r) => setTimeout(r, 900))
-    set({ investigatorName: name, isAuthenticating: false })
+    set({ investigatorName: name, investigatorRole: role, isAuthenticating: false })
   },
-  logout: () => set({ investigatorName: null }),
+  logout: () => set({ investigatorName: null, investigatorRole: null }),
 
   cases: [],
   casesLoading: false,

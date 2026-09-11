@@ -17,6 +17,12 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function RequireSupervisor({ children }: { children: React.ReactNode }) {
+  const investigatorRole = useAppStore((s) => s.investigatorRole)
+  if (investigatorRole !== 'supervisor') return <Navigate to="/cases" replace />
+  return <>{children}</>
+}
+
 export default function App() {
   return (
     <Routes>
@@ -34,7 +40,9 @@ export default function App() {
         path="/command-overview"
         element={
           <RequireAuth>
-            <CommandOverviewPage />
+            <RequireSupervisor>
+              <CommandOverviewPage />
+            </RequireSupervisor>
           </RequireAuth>
         }
       />

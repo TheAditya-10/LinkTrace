@@ -29,6 +29,7 @@ const riskBarColor: Record<string, string> = {
 export function Topbar() {
   const navigate = useNavigate()
   const investigatorName = useAppStore((s) => s.investigatorName)
+  const investigatorRole = useAppStore((s) => s.investigatorRole)
   const cases = useAppStore((s) => s.cases)
   const activeCaseData = useAppStore((s) => s.activeCaseData)
   const loadCase = useAppStore((s) => s.loadCase)
@@ -209,7 +210,9 @@ export function Topbar() {
         </div>
         <div className="hidden sm:block">
           <p className="text-xs font-semibold leading-tight text-ink-900">{investigatorName}</p>
-          <p className="mono-tag leading-tight">Investigator</p>
+          <p className="mono-tag leading-tight">
+            {investigatorRole === 'supervisor' ? 'Supervisor' : investigatorRole === 'analyst' ? 'Analyst' : 'Investigator'}
+          </p>
         </div>
       </div>
     </header>
