@@ -19,5 +19,6 @@ export async function uploadDocument(
   })
   const body = await res.json().catch(() => ({}) as { error?: string; documentId?: string; result?: ExtractionResult })
   if (!res.ok) throw new Error(body.error ?? `Document upload failed (${res.status})`)
-  return { documentId: body.documentId!, result: body.result! }
+  if (!body.documentId || !body.result) throw new Error('Document upload returned an invalid response')
+  return { documentId: body.documentId, result: body.result }
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Siren } from 'lucide-react'
 import type { GraphLink, GraphNode } from './useForceLayout'
 import { entityIcon, entityColorVar, isOriginEntity, ORIGIN_COLOR } from '@/lib/entityMeta'
@@ -43,6 +43,7 @@ export function NetworkGraph({
   const fitTimeoutRef = useRef<number>()
   const dragState = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
+  const gridId = useId()
 
   const fitToScreen = useCallback(() => {
     window.clearTimeout(fitTimeoutRef.current)
@@ -103,13 +104,14 @@ export function NetworkGraph({
     if ((e.target as SVGElement).dataset.nodeId || (e.target as SVGElement).closest?.('[data-node-id]')) return
     setIsFitting(false)
     dragState.current = { startX: e.clientX, startY: e.clientY, origX: transform.x, origY: transform.y }
-    ;(e.target as Element).setPointerCapture(e.pointerId)
+    e.currentTarget.setPointerCapture(e.pointerId)
   }
   function handlePointerMove(e: React.PointerEvent) {
-    if (!dragState.current) return
-    const dx = e.clientX - dragState.current.startX
-    const dy = e.clientY - dragState.current.startY
-    setTransform((t) => ({ ...t, x: dragState.current!.origX + dx, y: dragState.current!.origY + dy }))
+    const drag = dragState.current
+    if (!drag) return
+    const dx = e.clientX - drag.startX
+    const dy = e.clientY - drag.startY
+    setTransform((t) => ({ ...t, x: drag.origX + dx, y: drag.origY + dy }))
   }
   function handlePointerUp() {
     dragState.current = null
@@ -125,14 +127,15 @@ export function NetworkGraph({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
       onPointerLeave={handlePointerUp}
     >
       <defs>
-        <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+        <pattern id={gridId} width="32" height="32" patternUnits="userSpaceOnUse">
           <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#E2E8F3" strokeWidth="1" />
         </pattern>
       </defs>
-      <rect width={width} height={height} fill="url(#grid)" />
+      <rect width={width} height={height} fill={`url(#${gridId})`} />
       <g
         className={cn(isFitting && 'transition-transform duration-500 ease-out')}
         transform={`translate(${transform.x} ${transform.y}) scale(${transform.k})`}
