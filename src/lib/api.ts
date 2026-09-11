@@ -1,25 +1,37 @@
-import { allCases, getCaseDataById } from '@/data'
-import type { CaseData, Case } from '@/types'
-import { delay } from './utils'
-
-/**
- * Simulated backend. All data is local/static — the latency here exists
- * purely to sell the "processing" feel described in the product brief,
- * since a real deployment would be fetching from a graph pipeline.
- */
+import type { Case, CaseData } from '@/types'
 
 export async function fetchCases(): Promise<Case[]> {
-  await delay(600)
-  return allCases
+  const res = await fetch('/api/cases')
+  if (!res.ok) throw new Error(`Failed to load cases (${res.status})`)
+  return res.json()
 }
 
 export async function fetchCaseData(caseId: string): Promise<CaseData> {
-  await delay(850)
-  const data = getCaseDataById(caseId)
-  if (!data) throw new Error(`Unknown case: ${caseId}`)
-  return data
+  const res = await fetch(`/api/case-data?id=${encodeURIComponent(caseId)}`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}) as { error?: string })
+    throw new Error(body.error ?? `Unknown case: ${caseId}`)
+  }
+  return res.json()
 }
 
-export async function fetchEvidenceLookup(delayMs = 450): Promise<void> {
-  await delay(delayMs)
+export interface CreateCaseInput {
+  name: string
+  caseNumber?: string
+  jurisdiction: string
+  leadInvestigator: string
+  summary: string
+}
+
+export async function createCase(input: CreateCaseInput): Promise<Case> {
+  const res = await fetch('/api/cases', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}) as { error?: string })
+    throw new Error(body.error ?? `Failed to create case (${res.status})`)
+  }
+  return res.json()
 }

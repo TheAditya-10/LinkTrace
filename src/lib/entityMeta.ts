@@ -8,7 +8,7 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
-import type { EntityType, Priority, RiskLevel, EvidenceSourceType } from '@/types'
+import type { Entity, EntityType, Priority, RiskLevel, EvidenceSourceType } from '@/types'
 
 export const entityIcon: Record<EntityType, LucideIcon> = {
   person: User,
@@ -52,6 +52,20 @@ export const priorityColor: Record<Priority, string> = {
   medium: '#f59e0b',
   high: '#f97316',
   critical: '#ef4444',
+}
+
+/** Color used to flag the entity where an investigation originates — the person something happened to. */
+export const ORIGIN_COLOR = '#ef4444'
+
+const ORIGIN_ROLE_PATTERN = /\b(victim|deceased|complainant|injured|survivor)\b/i
+
+/**
+ * True for entities marking where an investigation starts — someone something happened to,
+ * identified from their `Role` attribute (e.g. "Victim", "Deceased", "Complainant").
+ */
+export function isOriginEntity(entity: Pick<Entity, 'attributes'>): boolean {
+  const role = Object.entries(entity.attributes).find(([k]) => k.toLowerCase() === 'role')?.[1]
+  return !!role && ORIGIN_ROLE_PATTERN.test(role)
 }
 
 export function riskLevelFromScore(score: number): RiskLevel {

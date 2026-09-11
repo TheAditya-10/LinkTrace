@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Clock, FolderOpen, TriangleAlert, ChevronRight, ShieldCheck, LogOut, LayoutGrid } from 'lucide-react'
+import { Search, Clock, FolderOpen, TriangleAlert, ChevronRight, ShieldCheck, LogOut, LayoutGrid, Plus } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { SkeletonBlock } from '@/components/ui/LoadingState'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Badge } from '@/components/ui/Badge'
+import { CreateCaseModal } from '@/components/CreateCaseModal'
 import { riskColor } from '@/lib/entityMeta'
 import { formatDate } from '@/lib/utils'
-import { allCaseData } from '@/data'
 import type { CaseStatus, RiskLevel } from '@/types'
 
 const statusLabel: Record<CaseStatus, string> = {
@@ -34,6 +34,7 @@ export default function CaseSelectorPage() {
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<CaseStatus | 'all'>('all')
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null)
+  const [createOpen, setCreateOpen] = useState(false)
 
   useEffect(() => {
     loadCases()
@@ -47,11 +48,9 @@ export default function CaseSelectorPage() {
     })
   }, [cases, statusFilter, query])
 
-  const totalEntities = allCaseData.reduce((sum, c) => sum + c.entities.length, 0)
-  const openLeads = allCaseData
-    .flatMap((c) => c.leads)
-    .filter((l) => l.priority === 'high' || l.priority === 'critical').length
-  const activeCases = allCaseData.filter((c) => c.case.status === 'active').length
+  const totalEntities = cases.reduce((sum, c) => sum + c.entityCount, 0)
+  const openLeads = cases.reduce((sum, c) => sum + (c.highPriorityLeadsCount ?? 0), 0)
+  const activeCases = cases.filter((c) => c.status === 'active').length
 
   async function handleSelect(caseId: string) {
     setNavigatingTo(caseId)
@@ -136,6 +135,12 @@ export default function CaseSelectorPage() {
               <option value="under_review">Under Review</option>
               <option value="closed">Closed</option>
             </select>
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-accent-dim active:scale-[0.98]"
+            >
+              <Plus className="h-3.5 w-3.5" /> New case
+            </button>
           </div>
         </div>
 
@@ -153,17 +158,16 @@ export default function CaseSelectorPage() {
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((c) => {
-              const data = allCaseData.find((d) => d.case.id === c.id)!
               return (
                 <button
                   key={c.id}
                   onClick={() => handleSelect(c.id)}
                   disabled={navigatingTo !== null}
-                  className="group relative flex flex-col gap-3 rounded-xl border border-base-border bg-base-surface p-5 text-left shadow-card transition hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-panel disabled:cursor-wait"
+                  className="group relative flex flex-col gap-3 rounded-xl border border-base-border bg-base-surface p-5 text-left shadow-card transition hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-panel active:translate-y-0 active:scale-[0.99] disabled:cursor-wait"
                 >
                   {navigatingTo === c.id && (
                     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-xl bg-base-surface/90 backdrop-blur-sm">
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+                      <div className="motion-loading h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
                       <p className="mono-tag">Loading case network…</p>
                     </div>
                   )}
@@ -180,7 +184,7 @@ export default function CaseSelectorPage() {
                     <Badge color={riskColor[c.riskLevel as RiskLevel]}>{c.riskLevel.toUpperCase()} RISK</Badge>
                   </div>
                   <div className="mt-1 flex items-center justify-between border-t border-base-border pt-3 text-[11px] text-ink-400">
-                    <span>{data.entities.length} entities · {data.relationships.length} links</span>
+                    <span>{c.entityCount} entities · {c.relationshipCount} links</span>
                     <span>Updated {formatDate(c.lastUpdated)}</span>
                   </div>
                 </button>
@@ -189,6 +193,7 @@ export default function CaseSelectorPage() {
           </div>
         )}
       </main>
+      <CreateCaseModal open={createOpen} onClose={() => setCreateOpen(false)} />
     </div>
   )
 }

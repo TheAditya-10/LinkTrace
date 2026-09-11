@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Siren } from 'lucide-react'
 import type { GraphLink, GraphNode } from './useForceLayout'
-import { entityIcon, entityColorVar } from '@/lib/entityMeta'
+import { entityIcon, entityColorVar, isOriginEntity, ORIGIN_COLOR } from '@/lib/entityMeta'
+import { cn } from '@/lib/utils'
 
 interface Transform {
   x: number
@@ -35,10 +37,18 @@ export function NetworkGraph({
   fitNonce,
 }: NetworkGraphProps) {
   const [transform, setTransform] = useState<Transform>({ x: 0, y: 0, k: 1 })
+  // True only for the brief moment a programmatic re-fit is animating the camera —
+  // never during a drag or wheel-zoom, which must track the pointer instantly.
+  const [isFitting, setIsFitting] = useState(false)
+  const fitTimeoutRef = useRef<number>()
   const dragState = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
 
   const fitToScreen = useCallback(() => {
+    window.clearTimeout(fitTimeoutRef.current)
+    setIsFitting(true)
+    fitTimeoutRef.current = window.setTimeout(() => setIsFitting(false), 500)
+
     if (nodes.length === 0 || width === 0 || height === 0) {
       setTransform({ x: 0, y: 0, k: 1 })
       return
@@ -61,6 +71,8 @@ export function NetworkGraph({
     fitToScreen()
   }, [fitToScreen, fitNonce])
 
+  useEffect(() => () => window.clearTimeout(fitTimeoutRef.current), [])
+
   const focusSet = useMemo(() => {
     if (!focusedEntityId) return null
     const neighborIds = new Set<string>([focusedEntityId])
@@ -73,6 +85,7 @@ export function NetworkGraph({
 
   function handleWheel(e: React.WheelEvent) {
     e.preventDefault()
+    setIsFitting(false)
     const rect = svgRef.current?.getBoundingClientRect()
     if (!rect) return
     const mx = e.clientX - rect.left
@@ -88,6 +101,7 @@ export function NetworkGraph({
 
   function handlePointerDown(e: React.PointerEvent) {
     if ((e.target as SVGElement).dataset.nodeId || (e.target as SVGElement).closest?.('[data-node-id]')) return
+    setIsFitting(false)
     dragState.current = { startX: e.clientX, startY: e.clientY, origX: transform.x, origY: transform.y }
     ;(e.target as Element).setPointerCapture(e.pointerId)
   }
@@ -119,7 +133,10 @@ export function NetworkGraph({
         </pattern>
       </defs>
       <rect width={width} height={height} fill="url(#grid)" />
-      <g transform={`translate(${transform.x} ${transform.y}) scale(${transform.k})`}>
+      <g
+        className={cn(isFitting && 'transition-transform duration-500 ease-out')}
+        transform={`translate(${transform.x} ${transform.y}) scale(${transform.k})`}
+      >
         {links.map((l) => {
           const dimmed = focusSet ? !(focusSet.has(l.relationship.sourceId) && focusSet.has(l.relationship.targetId)) : false
           const isSelected = selectedEntityId
@@ -127,8 +144,9 @@ export function NetworkGraph({
             : false
           const midX = (l.source.x + l.target.x) / 2
           const midY = (l.source.y + l.target.y) / 2
+          const linkGeometryTransition = 'x1 300ms ease-out, y1 300ms ease-out, x2 300ms ease-out, y2 300ms ease-out'
           return (
-            <g key={l.relationship.id} opacity={dimmed ? 0.12 : 1}>
+            <g key={l.relationship.id} opacity={dimmed ? 0.12 : 1} className="transition-opacity duration-300">
               <line
                 x1={l.source.x}
                 y1={l.source.y}
@@ -137,7 +155,8 @@ export function NetworkGraph({
                 stroke={isSelected ? '#06b6d4' : l.relationship.predicted ? '#c4b5fd' : '#93c5fd'}
                 strokeWidth={Math.max(1.2, l.relationship.weight * 3.2)}
                 strokeDasharray={l.relationship.predicted ? '5 4' : undefined}
-                className="cursor-pointer transition-opacity"
+                className="cursor-pointer"
+                style={{ transition: linkGeometryTransition }}
                 onClick={(e) => {
                   e.stopPropagation()
                   const rect = svgRef.current?.getBoundingClientRect()
@@ -155,6 +174,7 @@ export function NetworkGraph({
                 stroke="transparent"
                 strokeWidth={14}
                 className="cursor-pointer"
+                style={{ transition: linkGeometryTransition }}
                 onClick={(e) => {
                   e.stopPropagation()
                   const rect = svgRef.current?.getBoundingClientRect()
@@ -172,23 +192,41 @@ export function NetworkGraph({
           const color = entityColorVar[n.type]
           const dimmed = focusSet ? !focusSet.has(n.id) : false
           const isSelected = n.id === selectedEntityId
+          const isOrigin = isOriginEntity(n)
           return (
             <g
               key={n.id}
               data-node-id={n.id}
               transform={`translate(${n.x} ${n.y})`}
               opacity={dimmed ? 0.25 : 1}
-              className="cursor-pointer"
+              className="cursor-pointer transition-[opacity,transform] duration-300 ease-out"
               onClick={(e) => {
                 e.stopPropagation()
                 onNodeClick(n.id)
               }}
             >
+              {isOrigin && (
+                <circle
+                  r={n.radius + 10}
+                  fill="none"
+                  stroke={ORIGIN_COLOR}
+                  strokeWidth={2}
+                  strokeDasharray="3 4"
+                />
+              )}
               {isSelected && <circle r={n.radius + 6} fill="none" stroke="#06b6d4" strokeWidth={2} />}
               <circle r={n.radius} fill={color} fillOpacity={0.16} stroke={color} strokeWidth={2} />
               <foreignObject x={-9} y={-9} width={18} height={18} className="pointer-events-none">
                 <Icon width={18} height={18} color={color} strokeWidth={2.2} />
               </foreignObject>
+              {isOrigin && (
+                <g transform={`translate(${n.radius * 0.62} ${-n.radius * 0.62})`} className="pointer-events-none">
+                  <circle r={8} fill="#FFFFFF" stroke={ORIGIN_COLOR} strokeWidth={1.5} />
+                  <foreignObject x={-6} y={-6} width={12} height={12}>
+                    <Siren width={12} height={12} color={ORIGIN_COLOR} strokeWidth={2.5} />
+                  </foreignObject>
+                </g>
+              )}
               <g transform={`translate(0 ${n.radius + 8})`}>
                 <text
                   textAnchor="middle"

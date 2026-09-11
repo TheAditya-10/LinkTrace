@@ -125,6 +125,11 @@ export interface Case {
   summary: string
   leadInvestigator: string
   jurisdiction: string
+  /** Aggregate counts across the case's alerts/evidence — populated by the cases-list endpoint. */
+  openAlertsCount?: number
+  criticalAlertsCount?: number
+  conflictsCount?: number
+  highPriorityLeadsCount?: number
 }
 
 export interface CaseData {
@@ -159,4 +164,28 @@ export interface ExtractedRelationship {
 export interface ExtractionResult {
   entities: ExtractedEntity[]
   relationships: ExtractedRelationship[]
+}
+
+/** AI case-briefing wire types — shared between the client and /api/case-summary. */
+export interface CaseSummaryPerson {
+  entityId: string | null
+  role: string
+  note: string
+}
+
+export interface CaseSummaryMovement {
+  date: string
+  description: string
+}
+
+export interface CaseSummary {
+  headline: string
+  originEntityId: string | null
+  originReason: string
+  firSummary: string
+  narrative: string[]
+  keyPersons: CaseSummaryPerson[]
+  majorMovements: CaseSummaryMovement[]
+  currentStatus: string
+  generatedAt: string
 }

@@ -3,6 +3,7 @@ import { X, Bell, Link2, TrendingUp, TriangleAlert, FileStack } from 'lucide-rea
 import { useAppStore } from '@/store/useAppStore'
 import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { Overlay } from '@/components/ui/Overlay'
 import { priorityColor } from '@/lib/entityMeta'
 import { formatRelative } from '@/lib/utils'
 import type { AlertType } from '@/types'
@@ -25,7 +26,7 @@ export function AlertsPanel() {
   const selectEntity = useAppStore((s) => s.selectEntity)
   const requestFocus = useAppStore((s) => s.requestFocus)
 
-  if (!alertsOpen || !activeCaseData) return null
+  if (!activeCaseData) return null
 
   const alerts = [...activeCaseData.alerts].sort(
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
@@ -45,13 +46,8 @@ export function AlertsPanel() {
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end">
-      <button
-        aria-label="Close"
-        onClick={() => setAlertsOpen(false)}
-        className="absolute inset-0 bg-ink-900/30 backdrop-blur-[1px]"
-      />
-      <div className="relative flex h-full w-full max-w-sm flex-col border-l border-base-border bg-base-surface shadow-panel animate-[slideIn_0.2s_ease-out]">
+    <Overlay open={alertsOpen} onClose={() => setAlertsOpen(false)} drawerWidth="max-w-sm">
+      <div className="flex h-full flex-col">
         <div className="flex items-center justify-between border-b border-base-border p-5">
           <div className="flex items-center gap-2">
             <Bell className="h-4 w-4 text-accent" />
@@ -102,6 +98,6 @@ export function AlertsPanel() {
           )}
         </div>
       </div>
-    </div>
+    </Overlay>
   )
 }

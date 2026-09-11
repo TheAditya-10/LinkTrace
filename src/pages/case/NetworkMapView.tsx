@@ -7,8 +7,10 @@ import { computeEntityMetrics } from '@/lib/analytics'
 import { useForceLayout } from '@/components/graph/useForceLayout'
 import { NetworkGraph } from '@/components/graph/NetworkGraph'
 import { GraphControls } from '@/components/graph/GraphControls'
+import { CaseSummaryPanel } from '@/components/CaseSummaryPanel'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Waypoints } from 'lucide-react'
+import { ORIGIN_COLOR } from '@/lib/entityMeta'
 
 export default function NetworkMapView() {
   const { caseId } = useParams()
@@ -135,6 +137,13 @@ export default function NetworkMapView() {
             />
             Predicted
           </div>
+          <div className="flex items-center gap-2 text-[11px] text-ink-500">
+            <span
+              className="h-3 w-3 rounded-full"
+              style={{ border: `2px dashed ${ORIGIN_COLOR}` }}
+            />
+            Investigation origin
+          </div>
         </div>
 
         {/* Stats + fit button */}
@@ -188,6 +197,7 @@ export default function NetworkMapView() {
           </>
         )}
       </div>
+      <CaseSummaryPanel />
     </div>
   )
 }

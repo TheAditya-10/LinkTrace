@@ -40,17 +40,6 @@
   }
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateX(24px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
 @layer components {
   .panel {
     @apply rounded-xl border border-base-border bg-base-surface shadow-card;
@@ -62,5 +51,69 @@
 
   .eyebrow {
     @apply font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500;
+  }
+
+  /* Origin-aware dropdown reveal — case switcher, search results, any transient popover. */
+  .dropdown-panel {
+    animation: dropdown-in 140ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* One-time hero trace-in on the landing page network graphic — never loops. */
+@keyframes hero-line-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes hero-node-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.hero-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: hero-line-draw 560ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.hero-node {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hero-node-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/*
+ * Respect the user's motion preference everywhere, with one deliberate carve-out:
+ * elements marked `.motion-loading` (busy spinners / skeletons) keep moving, because a
+ * frozen loading indicator gives zero feedback that work is happening — the functional
+ * signal matters more than the motion itself.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *:not(.motion-loading, .motion-loading *),
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

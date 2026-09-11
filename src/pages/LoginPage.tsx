@@ -75,11 +75,11 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isAuthenticating}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-dim disabled:cursor-not-allowed disabled:opacity-70"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-dim active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 disabled:active:scale-100"
           >
             {isAuthenticating ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Authenticating…
+                <Loader2 className="motion-loading h-4 w-4 animate-spin" /> Authenticating…
               </>
             ) : (
               <>

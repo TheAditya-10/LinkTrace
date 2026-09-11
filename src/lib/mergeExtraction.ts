@@ -1,4 +1,4 @@
-import type { CaseData, Entity, Evidence, EvidenceSourceType, ExtractionResult } from '@/types'
+import type { CaseData, Entity, Evidence, EvidenceSourceType, ExtractionResult } from '../types/index.js'
 
 function newId(prefix: string): string {
   const rand = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36)
@@ -25,12 +25,20 @@ export interface MergeSummary {
  * than duplicated; everything else is created fresh and tied to one new
  * Evidence record built from the pasted source text.
  */
+export interface MergeSource {
+  sourceType: EvidenceSourceType
+  /** Pasted excerpt text, when the extraction came from the paste-text flow. */
+  rawText?: string
+  /** Original filename, when the extraction came from an uploaded document. */
+  documentFilename?: string
+}
+
 export function mergeExtractionIntoCase(
   caseData: CaseData,
   result: ExtractionResult,
-  rawText: string,
-  sourceType: EvidenceSourceType,
+  source: MergeSource,
 ): { data: CaseData; summary: MergeSummary } {
+  const { sourceType, rawText, documentFilename } = source
   const nowIso = new Date().toISOString()
   // Deep-ish clone: caseData.entities are shared fixture objects (module-level
   // singletons), so mutating evidenceIds below must not touch the originals.
@@ -98,8 +106,14 @@ export function mergeExtractionIntoCase(
       id: evidenceId,
       caseId: caseData.case.id,
       sourceType,
-      title: `AI-extracted from pasted ${sourceType} text`,
-      excerpt: rawText.length > 320 ? `${rawText.slice(0, 320)}…` : rawText,
+      title: documentFilename
+        ? `AI-extracted from uploaded ${sourceType}: ${documentFilename}`
+        : `AI-extracted from pasted ${sourceType} text`,
+      excerpt: rawText
+        ? rawText.length > 320
+          ? `${rawText.slice(0, 320)}…`
+          : rawText
+        : `Entities and relationships extracted from ${documentFilename ?? 'an uploaded document'}.`,
       timestamp: nowIso,
       reliability: 'probable',
       relatedEntityIds: touchedEntityIds,

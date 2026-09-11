@@ -103,7 +103,7 @@ export function Topbar() {
           <ChevronDown className="h-3.5 w-3.5 text-ink-400" />
         </button>
         {switcherOpen && (
-          <div className="absolute left-0 top-full z-30 mt-1.5 w-72 overflow-hidden rounded-xl border border-base-border bg-base-surface shadow-panel">
+          <div className="dropdown-panel absolute left-0 top-full z-30 mt-1.5 w-72 origin-top overflow-hidden rounded-xl border border-base-border bg-base-surface shadow-panel">
             {cases.map((c) => (
               <button
                 key={c.id}
@@ -147,7 +147,7 @@ export function Topbar() {
           ⌘K
         </kbd>
         {searchOpen && query.trim() && (
-          <div className="absolute left-0 top-full z-30 mt-1.5 w-full overflow-hidden rounded-xl border border-base-border bg-base-surface shadow-panel">
+          <div className="dropdown-panel absolute left-0 top-full z-30 mt-1.5 w-full origin-top overflow-hidden rounded-xl border border-base-border bg-base-surface shadow-panel">
             {matches.length === 0 ? (
               <p className="px-3 py-3 text-xs text-ink-400">No entities match "{query}"</p>
             ) : (
@@ -186,14 +186,14 @@ export function Topbar() {
       <button
         onClick={() => setAiExtractOpen(true)}
         title="Extract entities from text with AI"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-base-border text-ink-500 transition hover:border-accent/40 hover:text-accent"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-base-border text-ink-500 transition hover:border-accent/40 hover:text-accent active:scale-90"
       >
         <Sparkles className="h-4 w-4" />
       </button>
 
       <button
         onClick={() => setAlertsOpen(!alertsOpen)}
-        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-base-border text-ink-500 transition hover:border-accent/40 hover:text-accent"
+        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-base-border text-ink-500 transition hover:border-accent/40 hover:text-accent active:scale-90"
       >
         <Bell className="h-4 w-4" />
         {unreadCount > 0 && (

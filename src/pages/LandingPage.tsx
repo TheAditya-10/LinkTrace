@@ -41,6 +41,16 @@ const graphLinks: [number, number, boolean][] = [
   [4, 5, false], [2, 5, false], [4, 6, false], [6, 7, true], [3, 6, false],
 ]
 
+// Hero trace-in timing: each link draws in on its own stagger slot, and each
+// node "lands" right as the first link that touches it finishes drawing.
+const LINE_STAGGER_MS = 90
+const LINE_DRAW_MS = 560
+const nodeDelayMs: number[] = graphNodes.map((_, nodeIndex) => {
+  const firstLinkIndex = graphLinks.findIndex(([a, b]) => a === nodeIndex || b === nodeIndex)
+  const linkDelay = Math.max(firstLinkIndex, 0) * LINE_STAGGER_MS
+  return linkDelay + LINE_DRAW_MS * 0.55
+})
+
 export default function LandingPage() {
   const navigate = useNavigate()
 
@@ -55,7 +65,7 @@ export default function LandingPage() {
         </div>
         <button
           onClick={() => navigate('/login')}
-          className="rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-white transition hover:bg-accent-dim"
+          className="rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-white transition hover:bg-accent-dim active:scale-[0.97]"
         >
           Sign in
         </button>
@@ -75,7 +85,7 @@ export default function LandingPage() {
           <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={() => navigate('/login')}
-              className="flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-dim"
+              className="flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-dim active:scale-[0.97]"
             >
               Launch Dashboard <ArrowRight className="h-4 w-4" />
             </button>
@@ -94,24 +104,28 @@ export default function LandingPage() {
             {graphLinks.map(([a, b, predicted], i) => (
               <line
                 key={i}
+                pathLength={1}
                 x1={graphNodes[a].x}
                 y1={graphNodes[a].y}
                 x2={graphNodes[b].x}
                 y2={graphNodes[b].y}
                 stroke={predicted ? '#c4b5fd' : '#93c5fd'}
                 strokeWidth={0.8}
-                strokeDasharray={predicted ? '2 1.5' : undefined}
+                className="hero-line"
+                style={{ animationDelay: `${i * LINE_STAGGER_MS}ms`, animationDuration: `${LINE_DRAW_MS}ms` }}
               />
             ))}
             {graphNodes.map((n, i) => (
-              <circle key={i} cx={n.x} cy={n.y} r={n.r / 4} fill={n.color} fillOpacity={0.85}>
-                <animate
-                  attributeName="opacity"
-                  values="0.6;1;0.6"
-                  dur={`${3 + (i % 3)}s`}
-                  repeatCount="indefinite"
-                />
-              </circle>
+              <circle
+                key={i}
+                cx={n.x}
+                cy={n.y}
+                r={n.r / 4}
+                fill={n.color}
+                fillOpacity={0.85}
+                className="hero-node"
+                style={{ animationDelay: `${nodeDelayMs[i]}ms` }}
+              />
             ))}
           </svg>
         </div>
@@ -163,7 +177,7 @@ export default function LandingPage() {
           </p>
           <button
             onClick={() => navigate('/login')}
-            className="flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-dim"
+            className="flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-dim active:scale-[0.97]"
           >
             Get started <ArrowRight className="h-4 w-4" />
           </button>

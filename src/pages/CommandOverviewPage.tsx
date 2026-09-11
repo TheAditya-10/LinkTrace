@@ -1,7 +1,7 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Layers, Database, Share2, TriangleAlert, Bell, ChevronRight } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
-import { allCaseData } from '@/data'
 import { riskColor } from '@/lib/entityMeta'
 import type { RiskLevel, CaseStatus } from '@/types'
 
@@ -15,19 +15,25 @@ export default function CommandOverviewPage() {
   const navigate = useNavigate()
   const investigatorName = useAppStore((s) => s.investigatorName)
   const loadCase = useAppStore((s) => s.loadCase)
+  const cases = useAppStore((s) => s.cases)
+  const loadCases = useAppStore((s) => s.loadCases)
 
-  const rows = allCaseData.map((d) => {
-    const conflicts = d.evidence.filter((e) => e.contradictsEvidenceId).length
-    const openAlerts = d.alerts.filter((a) => !a.read).length
-    const critAlerts = d.alerts.filter((a) => a.priority === 'critical').length
-    return { data: d, conflicts, openAlerts, critAlerts }
-  })
+  useEffect(() => {
+    if (cases.length === 0) loadCases()
+  }, [cases.length, loadCases])
+
+  const rows = cases.map((c) => ({
+    case: c,
+    conflicts: c.conflictsCount ?? 0,
+    openAlerts: c.openAlertsCount ?? 0,
+    critAlerts: c.criticalAlertsCount ?? 0,
+  }))
 
   const totals = rows.reduce(
     (acc, r) => ({
       cases: acc.cases + 1,
-      entities: acc.entities + r.data.entities.length,
-      links: acc.links + r.data.relationships.length,
+      entities: acc.entities + r.case.entityCount,
+      links: acc.links + r.case.relationshipCount,
       conflicts: acc.conflicts + r.conflicts,
       alerts: acc.alerts + r.openAlerts,
     }),
@@ -75,31 +81,31 @@ export default function CommandOverviewPage() {
 
         <p className="eyebrow mb-3">Case Risk Register</p>
         <div className="panel divide-y divide-base-border overflow-hidden">
-          {rows.map(({ data, conflicts, openAlerts, critAlerts }) => (
+          {rows.map(({ case: c, conflicts, openAlerts, critAlerts }) => (
             <button
-              key={data.case.id}
-              onClick={() => openCase(data.case.id)}
+              key={c.id}
+              onClick={() => openCase(c.id)}
               className="flex w-full items-center gap-4 px-5 py-4 text-left transition hover:bg-base-muted"
             >
               <span
                 className="h-10 w-1 shrink-0 rounded-full"
-                style={{ backgroundColor: riskColor[data.case.riskLevel as RiskLevel] }}
+                style={{ backgroundColor: riskColor[c.riskLevel as RiskLevel] }}
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-ink-900">{data.case.name}</p>
-                <p className="mono-tag">{data.case.caseNumber}</p>
+                <p className="truncate text-sm font-semibold text-ink-900">{c.name}</p>
+                <p className="mono-tag">{c.caseNumber}</p>
               </div>
               <span
                 className="hidden shrink-0 rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide text-white sm:inline-block"
-                style={{ backgroundColor: riskColor[data.case.riskLevel as RiskLevel] }}
+                style={{ backgroundColor: riskColor[c.riskLevel as RiskLevel] }}
               >
-                {data.case.riskLevel}
+                {c.riskLevel}
               </span>
               <span className="hidden shrink-0 rounded-full bg-ink-500 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide text-white sm:inline-block">
-                {statusLabel[data.case.status]}
+                {statusLabel[c.status]}
               </span>
               <div className="hidden shrink-0 items-center gap-4 font-mono text-xs md:flex">
-                <span className="text-ink-500">{data.entities.length} ent</span>
+                <span className="text-ink-500">{c.entityCount} ent</span>
                 <span className={conflicts > 0 ? 'text-risk-critical' : 'text-ink-400'}>{conflicts} conflict</span>
                 <span className={openAlerts > 0 ? 'text-risk-medium' : 'text-ink-400'}>{openAlerts} alert</span>
                 <span className={critAlerts > 0 ? 'text-risk-critical' : 'text-ink-400'}>{critAlerts} crit</span>

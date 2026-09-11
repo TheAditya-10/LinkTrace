@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { SlidersHorizontal, ChevronDown, RotateCcw } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { entityLabel, entityColorVar } from '@/lib/entityMeta'
@@ -51,8 +52,17 @@ export function GraphControls() {
         </span>
         <ChevronDown className={cn('h-4 w-4 text-ink-400 transition-transform', open && 'rotate-180')} />
       </button>
-      {open && (
-        <div className="space-y-5 border-t border-base-border px-4 py-4">
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden border-t border-base-border"
+          >
+        <div className="space-y-5 px-4 py-4">
           <section>
             <div className="mb-2 flex items-center justify-between">
               <p className="eyebrow">Entity Filter</p>
@@ -138,12 +148,14 @@ export function GraphControls() {
 
           <button
             onClick={resetFilters}
-            className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-base-border py-2 text-xs font-medium text-ink-500 transition hover:border-accent/40 hover:text-accent"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-base-border py-2 text-xs font-medium text-ink-500 transition hover:border-accent/40 hover:text-accent active:scale-[0.98]"
           >
             <RotateCcw className="h-3.5 w-3.5" /> Reset filters
           </button>
         </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

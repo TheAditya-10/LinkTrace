@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import { forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide } from 'd3-force'
+import { forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide, forceY } from 'd3-force'
+import { isOriginEntity } from '@/lib/entityMeta'
 import type { Entity, Relationship } from '@/types'
 
 export interface GraphNode extends Entity {
@@ -19,6 +20,7 @@ interface SimNode {
   x: number
   y: number
   radius: number
+  isOrigin: boolean
 }
 
 /**
@@ -44,6 +46,7 @@ export function useForceLayout(
       x: width / 2 + (Math.random() - 0.5) * 100,
       y: height / 2 + (Math.random() - 0.5) * 100,
       radius: 14 + Math.min(degreeById.get(e.id) ?? 0, 10) * 2.2,
+      isOrigin: isOriginEntity(e),
     }))
     const nodeById = new Map(simNodes.map((n) => [n.id, n]))
 
@@ -64,6 +67,13 @@ export function useForceLayout(
       .force(
         'collide',
         forceCollide((d: unknown) => (d as SimNode).radius + 28),
+      )
+      // Pulls victims/complainants — wherever the investigation originates — toward
+      // a band near the top of the canvas, so they surface visually above the rest
+      // of the network instead of settling wherever the force layout happens to land.
+      .force(
+        'y',
+        forceY<SimNode>((d) => (d.isOrigin ? height * 0.15 : height * 0.55)).strength((d) => (d.isOrigin ? 0.35 : 0.02)),
       )
       .stop()
 

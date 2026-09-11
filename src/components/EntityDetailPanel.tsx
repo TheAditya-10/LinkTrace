@@ -1,9 +1,11 @@
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { X, ArrowUpRight } from 'lucide-react'
+import { X, ArrowUpRight, Siren } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
-import { entityIcon, entityColorVar, entityLabel, riskLevelFromScore, riskColor } from '@/lib/entityMeta'
+import { entityIcon, entityColorVar, entityLabel, riskLevelFromScore, riskColor, isOriginEntity, ORIGIN_COLOR } from '@/lib/entityMeta'
 import { formatDate } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
+import { Overlay } from '@/components/ui/Overlay'
 import type { Entity } from '@/types'
 
 export function EntityDetailPanel() {
@@ -14,10 +16,17 @@ export function EntityDetailPanel() {
   const selectEntity = useAppStore((s) => s.selectEntity)
   const requestFocus = useAppStore((s) => s.requestFocus)
 
-  if (!activeCaseData || !selectedEntityId) return null
-  const found = activeCaseData.entities.find((e) => e.id === selectedEntityId)
-  if (!found) return null
-  const entity: Entity = found
+  const found = activeCaseData?.entities.find((e) => e.id === selectedEntityId) ?? null
+  // Keep showing the last-selected entity while the panel animates closed,
+  // instead of blanking out the moment `selectedEntityId` clears.
+  const [entity, setEntity] = useState<Entity | null>(null)
+  useEffect(() => {
+    if (found) setEntity(found)
+  }, [found])
+
+  const open = !!selectedEntityId && !!found
+
+  if (!activeCaseData || !entity) return null
 
   const relationships = activeCaseData.relationships.filter(
     (r) => r.sourceId === entity.id || r.targetId === entity.id,
@@ -36,18 +45,13 @@ export function EntityDetailPanel() {
   }
 
   function focusOnMap() {
-    requestFocus({ entityId: entity.id })
+    requestFocus({ entityId: entity!.id })
     navigate(`/case/${caseId}/network`)
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end">
-      <button
-        aria-label="Close"
-        onClick={() => selectEntity(null)}
-        className="absolute inset-0 bg-ink-900/30 backdrop-blur-[1px]"
-      />
-      <div className="relative flex h-full w-full max-w-md flex-col overflow-y-auto border-l border-base-border bg-base-surface shadow-panel animate-[slideIn_0.2s_ease-out]">
+    <Overlay open={open} onClose={() => selectEntity(null)} drawerWidth="max-w-md">
+      <div className="flex h-full flex-col overflow-y-auto">
         <div className="flex items-start justify-between gap-3 border-b border-base-border p-5">
           <div className="flex items-start gap-3">
             <span
@@ -61,6 +65,14 @@ export function EntityDetailPanel() {
               <h2 className="font-sans text-lg font-bold leading-tight text-ink-900">{entity.label}</h2>
               {entity.aliases.length > 0 && (
                 <p className="text-xs text-ink-400">aka {entity.aliases.join(', ')}</p>
+              )}
+              {isOriginEntity(entity) && (
+                <span
+                  className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider"
+                  style={{ color: ORIGIN_COLOR, backgroundColor: `${ORIGIN_COLOR}14`, border: `1px solid ${ORIGIN_COLOR}40` }}
+                >
+                  <Siren className="h-2.5 w-2.5" /> Investigation origin
+                </span>
               )}
             </div>
           </div>
@@ -91,7 +103,7 @@ export function EntityDetailPanel() {
 
           <button
             onClick={focusOnMap}
-            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-white transition hover:bg-accent-dim"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-white transition hover:bg-accent-dim active:scale-[0.98]"
           >
             Highlight in Network Map <ArrowUpRight className="h-3.5 w-3.5" />
           </button>
@@ -159,6 +171,6 @@ export function EntityDetailPanel() {
           </section>
         </div>
       </div>
-    </div>
+    </Overlay>
   )
 }

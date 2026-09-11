@@ -1,7 +1,8 @@
 import { create } from 'zustand'
-import type { Case, CaseData, EvidenceSourceType, ExtractionResult } from '@/types'
-import { fetchCaseData, fetchCases } from '@/lib/api'
-import { mergeExtractionIntoCase, type MergeSummary } from '@/lib/mergeExtraction'
+import type { Case, CaseData, CaseSummary, EvidenceSourceType, ExtractionResult } from '@/types'
+import { fetchCaseData, fetchCases, createCase as apiCreateCase, type CreateCaseInput } from '@/lib/api'
+import type { MergeSummary } from '@/lib/mergeExtraction'
+import { generateCaseSummary as fetchCaseSummary } from '@/lib/caseSummaryApi'
 
 interface NetworkFilters {
   entityTypes: Set<string>
@@ -52,6 +53,7 @@ interface AppState {
   cases: Case[]
   casesLoading: boolean
   loadCases: () => Promise<void>
+  createCase: (input: CreateCaseInput) => Promise<Case>
 
   activeCaseData: CaseData | null
   activeCaseLoading: boolean
@@ -78,7 +80,15 @@ interface AppState {
 
   aiExtractOpen: boolean
   setAiExtractOpen: (open: boolean) => void
-  mergeExtraction: (result: ExtractionResult, rawText: string, sourceType: EvidenceSourceType) => MergeSummary
+  mergeExtraction: (
+    result: ExtractionResult,
+    source: { sourceType: EvidenceSourceType; rawText?: string; documentId?: string; documentFilename?: string },
+  ) => Promise<MergeSummary>
+
+  caseSummary: CaseSummary | null
+  caseSummaryLoading: boolean
+  caseSummaryError: string | null
+  generateCaseSummary: () => Promise<void>
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -98,6 +108,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     const cases = await fetchCases()
     set({ cases, casesLoading: false })
   },
+  createCase: async (input) => {
+    const created = await apiCreateCase(input)
+    set((s) => ({ cases: [created, ...s.cases] }))
+    return created
+  },
 
   activeCaseData: null,
   activeCaseLoading: false,
@@ -107,6 +122,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       selectedEntityId: null,
       filters: defaultFilters(),
       focusRequest: null,
+      caseSummary: null,
+      caseSummaryLoading: false,
+      caseSummaryError: null,
     })
     const data = await fetchCaseData(caseId)
     set({ activeCaseData: data, activeCaseLoading: false })
@@ -136,11 +154,36 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   aiExtractOpen: false,
   setAiExtractOpen: (open) => set({ aiExtractOpen: open }),
-  mergeExtraction: (result, rawText, sourceType) => {
+  mergeExtraction: async (result, source) => {
     const current = get().activeCaseData
     if (!current) return { entitiesAdded: 0, entitiesLinked: 0, relationshipsAdded: 0 }
-    const { data, summary } = mergeExtractionIntoCase(current, result, rawText, sourceType)
+    const res = await fetch('/api/merge-extraction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ caseId: current.case.id, result, ...source }),
+    })
+    const body = await res.json().catch(() => ({}) as { error?: string })
+    if (!res.ok) throw new Error(body.error ?? `Failed to add extraction to case (${res.status})`)
+    const { data, summary } = body as { data: CaseData; summary: MergeSummary }
     set({ activeCaseData: data })
     return summary
+  },
+
+  caseSummary: null,
+  caseSummaryLoading: false,
+  caseSummaryError: null,
+  generateCaseSummary: async () => {
+    const current = get().activeCaseData
+    if (!current) return
+    set({ caseSummaryLoading: true, caseSummaryError: null })
+    try {
+      const summary = await fetchCaseSummary(current)
+      set({ caseSummary: summary, caseSummaryLoading: false })
+    } catch (e) {
+      set({
+        caseSummaryError: e instanceof Error ? e.message : 'Failed to generate case summary',
+        caseSummaryLoading: false,
+      })
+    }
   },
 }))
