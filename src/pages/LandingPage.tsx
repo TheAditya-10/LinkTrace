@@ -172,7 +172,7 @@ export default function LandingPage() {
           <Search className="h-6 w-6 text-accent" />
           <h3 className="font-sans text-xl font-bold text-ink-900">See a case's full network in minutes</h3>
           <p className="max-w-md text-sm text-ink-500">
-            Sign in with any investigator ID to explore three sample cases, fully wired with entities,
+            Choose an analyst or supervisor profile to explore three sample cases, fully wired with entities,
             evidence, and analytics.
           </p>
           <button
