@@ -4,7 +4,6 @@ import { Maximize2, ArrowUpRight, X } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { useMeasure } from '@/lib/useMeasure'
 import { computeEntityMetrics } from '@/lib/analytics'
-import { useForceLayout } from '@/components/graph/useForceLayout'
 import { NetworkGraph } from '@/components/graph/NetworkGraph'
 import { GraphControls } from '@/components/graph/GraphControls'
 import { CaseSummaryPanel } from '@/components/CaseSummaryPanel'
@@ -75,17 +74,15 @@ export default function NetworkMapView() {
     return m
   }, [metrics])
 
-  const { nodes, links } = useForceLayout(visibleEntities, filteredRelationships, degreeById, width, height)
-
   const clusterCount = useMemo(() => new Set([...metrics.values()].map((m) => m.clusterId)).size, [metrics])
 
-  const popoverLink = popover ? links.find((l) => l.relationship.id === popover.linkId) : null
+  const popoverLink = popover ? filteredRelationships.find((relationship) => relationship.id === popover.linkId) : null
 
   function goToEvidence(relationshipId: string) {
     navigate(`/case/${caseId}/evidence?relationshipId=${relationshipId}`)
   }
 
-  const isEmpty = !activeCaseData ? false : nodes.length === 0
+  const isEmpty = !activeCaseData ? false : visibleEntities.length === 0
 
   return (
     <div className="flex h-full">
@@ -109,8 +106,9 @@ export default function NetworkMapView() {
           </div>
         ) : (
           <NetworkGraph
-            nodes={nodes}
-            links={links}
+            entities={visibleEntities}
+            relationships={filteredRelationships}
+            degreeById={degreeById}
             width={width}
             height={height}
             selectedEntityId={selectedEntityId}
@@ -150,7 +148,7 @@ export default function NetworkMapView() {
         {!isEmpty && (
           <>
             <div className="panel absolute bottom-4 left-4 px-3 py-1.5 font-mono text-[11px] text-ink-500">
-              {nodes.length} NODE{nodes.length === 1 ? '' : 'S'} &nbsp;|&nbsp; {links.length} EDGE{links.length === 1 ? '' : 'S'} &nbsp;|&nbsp; {clusterCount} CLUSTER{clusterCount === 1 ? '' : 'S'}
+              {visibleEntities.length} NODE{visibleEntities.length === 1 ? '' : 'S'} &nbsp;|&nbsp; {filteredRelationships.length} EDGE{filteredRelationships.length === 1 ? '' : 'S'} &nbsp;|&nbsp; {clusterCount} CLUSTER{clusterCount === 1 ? '' : 'S'}
             </div>
             <button
               onClick={() => setFitNonce((n) => n + 1)}
@@ -174,21 +172,21 @@ export default function NetworkMapView() {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="mono-tag mb-0.5">{popoverLink.relationship.type}{popoverLink.relationship.predicted && ' · predicted'}</p>
-                  <p className="text-sm font-semibold text-ink-900">{popoverLink.relationship.label}</p>
+                  <p className="mono-tag mb-0.5">{popoverLink.type}{popoverLink.predicted && ' · predicted'}</p>
+                  <p className="text-sm font-semibold text-ink-900">{popoverLink.label}</p>
                 </div>
                 <button onClick={() => setPopover(null)} className="text-ink-400 hover:text-ink-900">
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
-              <p className="text-xs text-ink-500">{popoverLink.relationship.description}</p>
+              <p className="text-xs text-ink-500">{popoverLink.description}</p>
               <div className="flex items-center gap-3 text-[11px] text-ink-500">
-                <span>Weight {Math.round(popoverLink.relationship.weight * 100)}%</span>
-                <span>{popoverLink.relationship.occurrenceCount} occurrences</span>
-                <span>{Math.round(popoverLink.relationship.confidence * 100)}% confidence</span>
+                <span>Weight {Math.round(popoverLink.weight * 100)}%</span>
+                <span>{popoverLink.occurrenceCount} occurrences</span>
+                <span>{Math.round(popoverLink.confidence * 100)}% confidence</span>
               </div>
               <button
-                onClick={() => goToEvidence(popoverLink.relationship.id)}
+                onClick={() => goToEvidence(popoverLink.id)}
                 className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-white hover:bg-accent-dim"
               >
                 View evidence <ArrowUpRight className="h-3.5 w-3.5" />
