@@ -40,10 +40,10 @@ export function CaseSummaryPanel() {
   }
 
   return (
-    <div className="flex w-80 shrink-0 flex-col overflow-y-auto border-l border-base-border bg-base-surface">
+    <div className="flex h-full min-h-0 w-80 shrink-0 flex-col overflow-hidden border-l border-base-border bg-base-surface">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-4 py-3.5 text-sm font-semibold text-ink-900"
+        className="flex w-full shrink-0 items-center justify-between px-4 py-3.5 text-sm font-semibold text-ink-900"
       >
         <span className="flex items-center gap-2">
           <FileText className="h-4 w-4 text-accent" /> Case Briefing
@@ -59,9 +59,9 @@ export function CaseSummaryPanel() {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden border-t border-base-border"
+            className="flex min-h-0 flex-1 flex-col overflow-hidden border-t border-base-border"
           >
-            <div className="space-y-5 px-4 py-4">
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4">
               <div className="flex items-center justify-between">
                 <span className="mono-tag">gemini-3.6-flash · langchain</span>
                 {summary && (
