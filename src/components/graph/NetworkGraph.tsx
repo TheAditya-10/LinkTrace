@@ -1,8 +1,19 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { createElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import ForceGraph2D, { type ForceGraphMethods, type ForceGraphProps, type GraphData } from 'react-force-graph-2d'
 import { forceCollide, forceManyBody, forceY } from 'd3-force'
+import type { IconType } from 'react-icons'
+import {
+  FaBuilding,
+  FaCalendar,
+  FaCar,
+  FaLocationDot,
+  FaPhone,
+  FaUser,
+  FaWallet,
+} from 'react-icons/fa6'
 import { entityColorVar, isOriginEntity, ORIGIN_COLOR } from '@/lib/entityMeta'
-import type { Entity, Relationship } from '@/types'
+import type { Entity, EntityType, Relationship } from '@/types'
 
 interface GraphNode extends Entity {
   radius: number
@@ -35,9 +46,66 @@ const MIN_ZOOM = 0.25
 const MAX_ZOOM = 2.5
 const FIT_PADDING = 60
 const LABEL_FONT = '600 11px Inter, sans-serif'
+const ENTITY_ICON_SIZE_LIMIT = 16
+const NODE_ICON_COLOR = '#FFFFFF'
+
+const entityGraphIcon: Record<EntityType, IconType> = {
+  person: FaUser,
+  phone: FaPhone,
+  vehicle: FaCar,
+  location: FaLocationDot,
+  organization: FaBuilding,
+  event: FaCalendar,
+  account: FaWallet,
+}
+
+interface EntityIconImage {
+  image: HTMLImageElement
+  loaded: boolean
+  loadListeners: Set<() => void>
+}
+
+const entityIconImageCache = new Map<string, EntityIconImage>()
 
 function nodeRadius(degree: number) {
   return 14 + Math.min(degree, 10) * 2.2
+}
+
+function nodeIconSize(radius: number) {
+  return Math.round(Math.min(ENTITY_ICON_SIZE_LIMIT, radius * 0.8))
+}
+
+function entityIconCacheKey(type: EntityType, color: string, size: number) {
+  return `${type}:${color}:${size}`
+}
+
+function preloadEntityIcon(type: EntityType, color: string, size: number) {
+  const key = entityIconCacheKey(type, color, size)
+  const cachedIcon = entityIconImageCache.get(key)
+  if (cachedIcon) return cachedIcon
+
+  const Icon = entityGraphIcon[type]
+  const image = new Image()
+  const icon: EntityIconImage = {
+    image,
+    loaded: false,
+    loadListeners: new Set(),
+  }
+
+  image.onload = () => {
+    icon.loaded = true
+    for (const listener of icon.loadListeners) listener()
+    icon.loadListeners.clear()
+  }
+  image.onerror = () => {
+    icon.loadListeners.clear()
+  }
+  entityIconImageCache.set(key, icon)
+  image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+    renderToStaticMarkup(createElement(Icon, { color: NODE_ICON_COLOR, size, 'aria-hidden': true })),
+  )}`
+
+  return icon
 }
 
 function nodeLabel(label: string) {
@@ -51,82 +119,6 @@ function collisionRadius(node: GraphNode) {
 
 function isGraphNode(value: GraphLink['source'] | GraphLink['target']): value is GraphNode {
   return typeof value === 'object' && value !== null
-}
-
-function drawEntityGlyph(node: GraphNode, ctx: CanvasRenderingContext2D) {
-  const color = entityColorVar[node.type]
-  const size = Math.min(9, node.radius * 0.48)
-
-  ctx.save()
-  ctx.strokeStyle = color
-  ctx.fillStyle = color
-  ctx.lineWidth = 2.2
-  ctx.lineCap = 'round'
-  ctx.lineJoin = 'round'
-
-  switch (node.type) {
-    case 'person':
-      ctx.beginPath()
-      ctx.arc(0, -size * 0.38, size * 0.3, 0, Math.PI * 2)
-      ctx.moveTo(-size * 0.58, size * 0.72)
-      ctx.arc(0, size * 0.72, size * 0.58, Math.PI, 0)
-      ctx.stroke()
-      break
-    case 'phone':
-      ctx.beginPath()
-      ctx.moveTo(-size * 0.48, -size * 0.62)
-      ctx.lineTo(-size * 0.14, -size * 0.28)
-      ctx.lineTo(-size * 0.4, size * 0.12)
-      ctx.lineTo(size * 0.2, size * 0.7)
-      ctx.lineTo(size * 0.6, size * 0.4)
-      ctx.stroke()
-      break
-    case 'vehicle':
-      ctx.strokeRect(-size * 0.78, -size * 0.24, size * 1.56, size * 0.75)
-      ctx.beginPath()
-      ctx.arc(-size * 0.48, size * 0.58, size * 0.18, 0, Math.PI * 2)
-      ctx.arc(size * 0.48, size * 0.58, size * 0.18, 0, Math.PI * 2)
-      ctx.stroke()
-      break
-    case 'location':
-      ctx.beginPath()
-      ctx.arc(0, -size * 0.22, size * 0.52, 0, Math.PI * 2)
-      ctx.moveTo(-size * 0.35, size * 0.12)
-      ctx.lineTo(0, size * 0.82)
-      ctx.lineTo(size * 0.35, size * 0.12)
-      ctx.stroke()
-      break
-    case 'organization':
-      ctx.strokeRect(-size * 0.58, -size * 0.72, size * 1.16, size * 1.44)
-      ctx.beginPath()
-      ctx.moveTo(-size * 0.22, -size * 0.32)
-      ctx.lineTo(size * 0.22, -size * 0.32)
-      ctx.moveTo(-size * 0.22, size * 0.12)
-      ctx.lineTo(size * 0.22, size * 0.12)
-      ctx.moveTo(0, size * 0.72)
-      ctx.lineTo(0, size * 0.38)
-      ctx.stroke()
-      break
-    case 'event':
-      ctx.strokeRect(-size * 0.64, -size * 0.58, size * 1.28, size * 1.22)
-      ctx.beginPath()
-      ctx.moveTo(-size * 0.64, -size * 0.16)
-      ctx.lineTo(size * 0.64, -size * 0.16)
-      ctx.moveTo(-size * 0.34, -size * 0.82)
-      ctx.lineTo(-size * 0.34, -size * 0.38)
-      ctx.moveTo(size * 0.34, -size * 0.82)
-      ctx.lineTo(size * 0.34, -size * 0.38)
-      ctx.stroke()
-      break
-    case 'account':
-      ctx.strokeRect(-size * 0.76, -size * 0.44, size * 1.52, size * 0.96)
-      ctx.beginPath()
-      ctx.arc(size * 0.3, size * 0.04, size * 0.08, 0, Math.PI * 2)
-      ctx.fill()
-      break
-  }
-
-  ctx.restore()
 }
 
 function drawSiren(ctx: CanvasRenderingContext2D, x: number, y: number) {
@@ -164,6 +156,7 @@ export function NetworkGraph({
   fitNonce,
 }: NetworkGraphProps) {
   const graphRef = useRef<ForceGraphMethods<GraphNode, GraphLink>>()
+  const [iconCacheVersion, setIconCacheVersion] = useState(0)
 
   const graphData = useMemo<GraphData<GraphNode, GraphLink>>(() => {
     const nodes = entities.map((entity) => ({
@@ -182,6 +175,30 @@ export function NetworkGraph({
 
     return { nodes, links }
   }, [degreeById, entities, relationships])
+
+  useEffect(() => {
+    const cleanupCallbacks = new Set<() => void>()
+    const preloadedKeys = new Set<string>()
+
+    for (const node of graphData.nodes) {
+      const color = entityColorVar[node.type]
+      const size = nodeIconSize(node.radius)
+      const key = entityIconCacheKey(node.type, color, size)
+      if (preloadedKeys.has(key)) continue
+      preloadedKeys.add(key)
+
+      const icon = preloadEntityIcon(node.type, color, size)
+      if (icon.loaded) continue
+
+      const redraw = () => setIconCacheVersion((version) => version + 1)
+      icon.loadListeners.add(redraw)
+      cleanupCallbacks.add(() => icon.loadListeners.delete(redraw))
+    }
+
+    return () => {
+      for (const cleanup of cleanupCallbacks) cleanup()
+    }
+  }, [graphData])
 
   const focusSet = useMemo(() => {
     if (!focusedEntityId) return null
@@ -288,16 +305,15 @@ export function NetworkGraph({
 
       ctx.beginPath()
       ctx.arc(x, y, node.radius, 0, Math.PI * 2)
-      ctx.fillStyle = `${color}29`
+      ctx.fillStyle = color
       ctx.fill()
       ctx.strokeStyle = color
       ctx.lineWidth = 2
       ctx.stroke()
 
-      ctx.save()
-      ctx.translate(x, y)
-      drawEntityGlyph(node, ctx)
-      ctx.restore()
+      const iconSize = nodeIconSize(node.radius)
+      const icon = entityIconImageCache.get(entityIconCacheKey(node.type, color, iconSize))
+      if (icon?.loaded) ctx.drawImage(icon.image, x - iconSize / 2, y - iconSize / 2, iconSize, iconSize)
 
       if (node.isOrigin) drawSiren(ctx, x + node.radius * 0.62, y - node.radius * 0.62)
 
@@ -311,7 +327,9 @@ export function NetworkGraph({
       ctx.fillText(nodeLabel(node.label), x, y + node.radius + 8)
       ctx.restore()
     },
-    [focusSet, selectedEntityId],
+    // Replace the ForceGraph canvas callback whenever an asynchronously cached icon resolves.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [focusSet, iconCacheVersion, selectedEntityId],
   )
 
   const paintNodePointerArea = useCallback<NonNullable<ForceGraphProps<GraphNode, GraphLink>['nodePointerAreaPaint']>>(
