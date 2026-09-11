@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import ForceGraph2D, { type ForceGraphMethods, type ForceGraphProps, type GraphData } from 'react-force-graph-2d'
-import { forceCollide, forceLink, forceManyBody, forceY } from 'd3-force'
+import { forceCollide, forceManyBody, forceY } from 'd3-force'
 import { entityColorVar, isOriginEntity, ORIGIN_COLOR } from '@/lib/entityMeta'
 import type { Entity, Relationship } from '@/types'
 
@@ -197,13 +197,11 @@ export function NetworkGraph({
     const graph = graphRef.current
     if (!graph) return
 
-    graph.d3Force(
-      'link',
-      forceLink<GraphNode, GraphLink>(graphData.links)
-        .id((node) => node.id)
-        .distance((link) => 90 + (1 - link.weight) * 70)
-        .strength(0.5),
-    )
+    const linkForce = graph.d3Force('link')
+    if (linkForce) {
+      linkForce.distance((link: GraphLink) => 90 + (1 - link.weight) * 70)
+      linkForce.strength(0.5)
+    }
     graph.d3Force('charge', forceManyBody<GraphNode>().strength(-260))
     graph.d3Force('collide', forceCollide<GraphNode>(collisionRadius).strength(1).iterations(2))
     // Investigation origins remain in a visually distinct upper band without rigidly pinning them.
