@@ -42,10 +42,13 @@ export function GraphControls() {
   }
 
   return (
-    <div className="w-72 shrink-0 overflow-y-auto border-r border-base-border bg-base-surface">
+    <div className="absolute left-4 top-4 z-20 w-[calc(100%-2rem)] max-w-72">
       <button
+        type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-4 py-3.5 text-sm font-semibold text-ink-900"
+        aria-expanded={open}
+        aria-controls="graph-controls-panel"
+        className="panel flex w-full items-center justify-between px-4 py-3.5 text-sm font-semibold text-ink-900"
       >
         <span className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4 text-accent" /> Graph Controls
@@ -56,11 +59,13 @@ export function GraphControls() {
         {open && (
           <motion.div
             key="body"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            id="graph-controls-panel"
+            initial={{ opacity: 0, y: -4, filter: 'blur(2px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -2, filter: 'blur(2px)' }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden border-t border-base-border"
+            className="panel absolute left-0 top-[calc(100%+0.5rem)] max-h-[calc(100vh-6rem)] w-full overflow-y-auto"
+            style={{ transformOrigin: 'top left' }}
           >
         <div className="space-y-5 px-4 py-4">
           <section>

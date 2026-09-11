@@ -89,8 +89,8 @@ export default function NetworkMapView() {
 
   return (
     <div className="flex h-full">
-      <GraphControls />
       <div ref={ref} className="relative min-w-0 flex-1 bg-base-bg">
+        <GraphControls />
         {isEmpty ? (
           <div className="flex h-full items-center justify-center p-8">
             <EmptyState
